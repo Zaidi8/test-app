@@ -16,7 +16,7 @@ export const TextLink = ({ label, href, className }: TextLinkProps) => {
     <Link
       href={href}
       className={cn(
-        "text-sm text-white hover:underline cursor-pointer",
+        "text-sm text-black hover:underline cursor-pointer",
         className
       )}
     >
