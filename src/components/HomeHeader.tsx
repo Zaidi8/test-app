@@ -32,10 +32,9 @@ export default function DashboardHeader() {
 
   const handleLogout = async () => {
     try {
-      await signOut(auth); // Firebase logout
-      document.cookie =
-        'authToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT'; // Clear cookie
-      router.push('/'); // Redirect to login or home
+      await signOut(auth);
+      document.cookie = 'authToken=; path=/; max-age=0';
+      router.push('/');
     } catch (error) {
       console.error('Error logging out:', error);
     }
@@ -59,7 +58,7 @@ export default function DashboardHeader() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Avatar className="cursor-pointer">
-              <AvatarImage src="../../assets/images/profile.png" alt="@user" />
+              <AvatarImage src="/profile.png" alt="@user" />
               <AvatarFallback>U</AvatarFallback>
             </Avatar>
           </DropdownMenuTrigger>

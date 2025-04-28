@@ -1,11 +1,12 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth";
+import {getFirestore} from 'firebase/firestore'
 
 const firebaseConfig = {
   apiKey: "AIzaSyBz6S0MRyPjhEj6nuRLn0D0tlcW7gLMnfo",
   authDomain: "test-8a72b.firebaseapp.com",
   projectId: "test-8a72b",
-  storageBucket: "test-8a72b.firebasestorage.app",
+  storageBucket: "test-8a72b.appspot.com",
   messagingSenderId: "5477653748",
   appId: "1:5477653748:web:e29156070ad37e604a52a1",
   measurementId: "G-E4EW5JVTHB"
@@ -13,6 +14,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app)
+const db = getFirestore(app)
 
 setPersistence(auth, browserLocalPersistence)
   .then(() => {
@@ -22,4 +24,4 @@ setPersistence(auth, browserLocalPersistence)
     console.error("Auth persistence error:",error);
   });
 
-export {auth};
+export {auth,db};

@@ -1,8 +1,8 @@
-import DashboardHeader from '@/components/HomeHeader';
-export default function HomeScreen() {
+import HomePage from '@/components/Home';
+export default function Home() {
   return (
     <div>
-      <DashboardHeader />
+      <HomePage />
     </div>
   );
 }
