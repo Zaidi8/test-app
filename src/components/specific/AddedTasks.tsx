@@ -29,24 +29,6 @@ export default function AddedTasks({projectId}: {projectId: string}) {
   const [tasks, setTasks] = useState<TaskType[]>([]);
   const [editingTask, setEditingTask] = useState<TaskType | null>(null);
 
-  const fetchTasks = () => {
-    const user = auth.currentUser;
-    if (!user) return;
-
-    const q = query(
-      collection(db, 'users', user.uid, 'projects', projectId, 'tasks'),
-    );
-    const unsubscribe = onSnapshot(q, snapshot => {
-      const fetchedTasks = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as TaskType[];
-      setTasks(fetchedTasks);
-    });
-
-    return () => unsubscribe();
-  };
-
   const toggleComplete = async (task: TaskType) => {
     const user = auth.currentUser;
     if (!user || !task.id) return;
@@ -81,6 +63,23 @@ export default function AddedTasks({projectId}: {projectId: string}) {
   };
 
   useEffect(() => {
+    const fetchTasks = () => {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const q = query(
+        collection(db, 'users', user.uid, 'projects', projectId, 'tasks'),
+      );
+      const unsubscribe = onSnapshot(q, snapshot => {
+        const fetchedTasks = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as TaskType[];
+        setTasks(fetchedTasks);
+      });
+
+      return () => unsubscribe();
+    };
     const unsubscribe = fetchTasks();
     return () => {
       if (unsubscribe) unsubscribe();

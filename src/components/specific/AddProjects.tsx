@@ -113,7 +113,10 @@ export default function AddProject({
         />
 
         <DialogFooter>
-          <Button className="cursor-pointer" onClick={handleSubmitProject}>
+          <Button
+            className="cursor-pointer"
+            onClick={handleSubmitProject}
+            disabled={loading}>
             {editingProject ? 'Update' : 'Create'}
           </Button>
         </DialogFooter>
