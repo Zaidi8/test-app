@@ -1,8 +1,8 @@
 'use client';
 
 import {useState} from 'react';
-import AddedProjects from './AddedProjects';
-import AddedTasks from './AddedTasks';
+import AddedProjects from '../specific/AddedProjects';
+import AddedTasks from '../specific/AddedTasks';
 
 export default function Dashboard() {
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(

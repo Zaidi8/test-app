@@ -9,11 +9,11 @@ import {
   updateDoc,
   deleteDoc,
 } from 'firebase/firestore';
-import {db, auth} from '../../firebaseConfig';
+import {db, auth} from '../../../firebaseConfig';
 import {ProjectType} from '@/types/project';
-import {Card} from './ui/card';
-import {Badge} from './ui/badge';
-import {Button} from './ui/button';
+import {Card} from '../ui/card';
+import {Badge} from '../ui/badge';
+import {Button} from '../ui/button';
 import {toast} from 'sonner';
 import AddProject from './AddProjects';
 import {onAuthStateChanged} from 'firebase/auth';

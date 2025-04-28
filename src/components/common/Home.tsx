@@ -1,4 +1,4 @@
-import DashboardHeader from '@/components/HomeHeader';
+import DashboardHeader from '@/components/common/HomeHeader';
 import Dashboard from './Dashboard';
 export default function HomePage() {
   return (

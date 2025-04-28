@@ -1,18 +1,18 @@
 'use client';
 
 import {useEffect, useState} from 'react';
-import {Card} from './ui/card';
-import {Badge} from './ui/badge';
-import {Button} from './ui/button';
-import {Checkbox} from './ui/checkbox';
+import {Card} from '../ui/card';
+import {Badge} from '../ui/badge';
+import {Button} from '../ui/button';
+import {Checkbox} from '../ui/checkbox';
 import {MoreVertical} from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
-} from './ui/dropdown-menu';
-import {auth, db} from '../../firebaseConfig';
+} from '../ui/dropdown-menu';
+import {auth, db} from '../../../firebaseConfig';
 import {
   collection,
   deleteDoc,

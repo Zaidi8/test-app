@@ -11,7 +11,7 @@ import {
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
 import {Button} from '@/components/ui/button';
-import {auth} from '../../firebaseConfig';
+import {auth} from '../../../firebaseConfig';
 import {useRouter} from 'next/navigation';
 
 export default function DashboardHeader() {

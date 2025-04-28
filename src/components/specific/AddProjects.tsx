@@ -1,6 +1,6 @@
 'use client';
 import {useEffect} from 'react';
-import {Button} from './ui/button';
+import {Button} from '../ui/button';
 import {
   Dialog,
   DialogTrigger,
@@ -8,12 +8,12 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from './ui/dialog';
-import {Input} from './ui/input';
+} from '../ui/dialog';
+import {Input} from '../ui/input';
 import {useState} from 'react';
 import {toast} from 'sonner';
 import {ProjectType} from '@/types/project';
-import {auth, db} from '../../firebaseConfig';
+import {auth, db} from '../../../firebaseConfig';
 import {
   addDoc,
   doc,

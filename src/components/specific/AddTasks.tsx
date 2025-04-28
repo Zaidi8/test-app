@@ -1,6 +1,6 @@
 'use client';
 import {useState, useEffect} from 'react';
-import {db} from '../../firebaseConfig';
+import {db} from '../../../firebaseConfig';
 import {
   addDoc,
   updateDoc,
@@ -9,11 +9,11 @@ import {
   serverTimestamp,
 } from 'firebase/firestore';
 import {toast} from 'sonner';
-import {Button} from './ui/button'; // Assuming these components exist in your UI folder
-import {Input} from './ui/input';
-import {auth} from '../../firebaseConfig';
+import {Button} from '../ui/button'; // Assuming these components exist in your UI folder
+import {Input} from '../ui/input';
+import {auth} from '../../../firebaseConfig';
 import {TaskType} from '@/types/project';
-import {Card} from './ui/card';
+import {Card} from '../ui/card';
 
 interface AddTaskProps {
   projectId: string;
