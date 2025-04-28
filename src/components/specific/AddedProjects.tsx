@@ -11,7 +11,6 @@ import {
 } from 'firebase/firestore';
 import {db, auth} from '../../../firebaseConfig';
 import {ProjectType} from '@/types/project';
-import {Card} from '../ui/card';
 import {Button} from '../ui/button';
 import {toast} from 'sonner';
 import AddProject from './AddProjects';
@@ -106,75 +105,79 @@ export default function AddedProjects({
   };
 
   return (
-    <div className="mx-6 rounded-lg min-h-11/12 bg-white">
-      <div>
-        {projects.map(project => (
-          <Card
-            key={project.id}
-            onClick={() => setSelectedProjectId(project.id)}
-            className={`flex mb-2 justify-between items-center p-3 border cursor-pointer ${
-              selectedProjectId === project.id ? 'bg-blue-100' : ''
-            }`}>
-            <div className="flex my-3 flex-row items-center justify-between w-full">
-              <div>
-                <span>{project.isComplete ? ' ✅ ' : ' 📌 '}</span>
-                <span
-                  className={
-                    project.isComplete
-                      ? 'line-through text-muted-foreground'
-                      : ''
-                  }>
-                  {project.title}
-                </span>
-              </div>
+    <div className="mx-6 rounded-lg h-full bg-white">
+      <div className="mx-8 pt-10">
+        <div>
+          {projects.map(project => (
+            <div
+              key={project.id}
+              onClick={() => setSelectedProjectId(project.id)}
+              className={`flex mb-2 rounded-sm items-center cursor-pointer ${
+                selectedProjectId === project.id ? 'bg-gray-100' : ''
+              }`}>
+              <div className="flex text-sm mx-4 flex-row items-center justify-between w-full">
+                <div>
+                  <span>{project.isComplete ? ' ✅ ' : ' 📌 '}</span>
+                  <span
+                    className={
+                      project.isComplete
+                        ? 'line-through text-muted-foreground'
+                        : ''
+                    }>
+                    {project.title}
+                  </span>
+                </div>
 
-              <div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="cursor-pointer">
-                      <MoreVertical />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      className="cursor-pointer"
-                      onClick={e => {
-                        e.stopPropagation();
-                        editProject(project);
-                      }}>
-                      Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className="cursor-pointer"
-                      onClick={e => {
-                        e.stopPropagation();
-                        toggleComplete(project);
-                      }}>
-                      {project.isComplete ? 'Mark Incomplete' : 'Mark Complete'}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className="cursor-pointer"
-                      onClick={e => {
-                        e.stopPropagation();
-                        deleteProject(project.id!, project.userId);
-                      }}>
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <div className="-mr-4">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="cursor-pointer">
+                        <MoreVertical />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        className="cursor-pointer"
+                        onClick={e => {
+                          e.stopPropagation();
+                          editProject(project);
+                        }}>
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="cursor-pointer"
+                        onClick={e => {
+                          e.stopPropagation();
+                          toggleComplete(project);
+                        }}>
+                        {project.isComplete
+                          ? 'Mark Incomplete'
+                          : 'Mark Complete'}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="cursor-pointer"
+                        onClick={e => {
+                          e.stopPropagation();
+                          deleteProject(project.id!, project.userId);
+                        }}>
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
             </div>
-          </Card>
-        ))}
+          ))}
+        </div>
+        <AddProject
+          editingProject={editingProject}
+          setEditingProject={setEditingProject}
+          onProjectAdded={handleProjectAdded}
+        />
       </div>
-      <AddProject
-        editingProject={editingProject}
-        setEditingProject={setEditingProject}
-        onProjectAdded={handleProjectAdded}
-      />
     </div>
   );
 }
