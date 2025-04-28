@@ -12,7 +12,6 @@ import {
 import {db, auth} from '../../../firebaseConfig';
 import {ProjectType} from '@/types/project';
 import {Card} from '../ui/card';
-import {Badge} from '../ui/badge';
 import {Button} from '../ui/button';
 import {toast} from 'sonner';
 import AddProject from './AddProjects';
@@ -107,16 +106,16 @@ export default function AddedProjects({
   };
 
   return (
-    <div className="mx-6">
-      <div className="my-4">
+    <div className="mx-6 rounded-lg min-h-11/12 bg-white">
+      <div>
         {projects.map(project => (
           <Card
             key={project.id}
-            onClick={() => setSelectedProjectId(project.id)} // Update selected project on click
-            className={`flex mb-4 justify-between items-center p-3 border cursor-pointer ${
-              selectedProjectId === project.id ? 'bg-blue-100' : '' // Change color if selected
+            onClick={() => setSelectedProjectId(project.id)}
+            className={`flex mb-2 justify-between items-center p-3 border cursor-pointer ${
+              selectedProjectId === project.id ? 'bg-blue-100' : ''
             }`}>
-            <div className="flex flex-row items-center justify-between w-full">
+            <div className="flex my-3 flex-row items-center justify-between w-full">
               <div>
                 <span>{project.isComplete ? ' ✅ ' : ' 📌 '}</span>
                 <span
@@ -128,11 +127,7 @@ export default function AddedProjects({
                   {project.title}
                 </span>
               </div>
-              <div>
-                <Badge variant={project.isComplete ? 'outline' : 'default'}>
-                  {project.isComplete ? 'Complete' : 'Incomplete'}
-                </Badge>
-              </div>
+
               <div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
