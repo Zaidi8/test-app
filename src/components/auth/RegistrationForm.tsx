@@ -5,7 +5,7 @@ import {Label} from '@/components/ui/Label';
 import {TextLink} from '../ui/TextLink';
 import {Button} from '../ui/button';
 import {Input} from '../ui/input';
-import {createUser} from '@/api/AuthServices';
+import {createUser} from '../../api/AuthServices';
 import {useRouter} from 'next/navigation';
 
 export function RegisterForm() {
