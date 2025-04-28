@@ -17,6 +17,13 @@ import {Button} from '../ui/button';
 import {toast} from 'sonner';
 import AddProject from './AddProjects';
 import {onAuthStateChanged} from 'firebase/auth';
+import {MoreVertical} from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '../ui/dropdown-menu';
 
 interface AddedProjectsProps {
   selectedProjectId: string | null;
@@ -100,16 +107,16 @@ export default function AddedProjects({
   };
 
   return (
-    <div>
-      <div className="mt-4 space-y-2">
+    <div className="mx-6">
+      <div className="my-4">
         {projects.map(project => (
           <Card
             key={project.id}
             onClick={() => setSelectedProjectId(project.id)} // Update selected project on click
-            className={`flex justify-between items-center p-3 border cursor-pointer ${
+            className={`flex mb-4 justify-between items-center p-3 border cursor-pointer ${
               selectedProjectId === project.id ? 'bg-blue-100' : '' // Change color if selected
             }`}>
-            <div className="flex flex-row gap-2 justify-between w-full">
+            <div className="flex flex-row items-center justify-between w-full">
               <div>
                 <span>{project.isComplete ? ' ✅ ' : ' 📌 '}</span>
                 <span
@@ -126,34 +133,44 @@ export default function AddedProjects({
                   {project.isComplete ? 'Complete' : 'Incomplete'}
                 </Badge>
               </div>
-            </div>
-            <div className="flex flex-row justify-between w-full">
-              <Button
-                size="sm"
-                onClick={e => {
-                  e.stopPropagation();
-                  toggleComplete(project);
-                }}>
-                Toggle
-              </Button>
-              <Button
-                className="bg-green-500"
-                size="sm"
-                onClick={e => {
-                  e.stopPropagation();
-                  editProject(project);
-                }}>
-                Edit
-              </Button>
-              <Button
-                size="sm"
-                variant="destructive"
-                onClick={e => {
-                  e.stopPropagation();
-                  deleteProject(project.id!, project.userId);
-                }}>
-                Delete
-              </Button>
+              <div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="cursor-pointer">
+                      <MoreVertical />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      className="cursor-pointer"
+                      onClick={e => {
+                        e.stopPropagation();
+                        editProject(project);
+                      }}>
+                      Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="cursor-pointer"
+                      onClick={e => {
+                        e.stopPropagation();
+                        toggleComplete(project);
+                      }}>
+                      {project.isComplete ? 'Mark Incomplete' : 'Mark Complete'}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="cursor-pointer"
+                      onClick={e => {
+                        e.stopPropagation();
+                        deleteProject(project.id!, project.userId);
+                      }}>
+                      Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
           </Card>
         ))}

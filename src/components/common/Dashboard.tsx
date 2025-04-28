@@ -10,7 +10,7 @@ export default function Dashboard() {
   );
 
   return (
-    <div className="grid grid-cols-10 h-screen">
+    <div className=" grid grid-cols-10 h-screen">
       <aside className="col-span-3 border-r p-4">
         <AddedProjects
           selectedProjectId={selectedProjectId}
