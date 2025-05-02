@@ -15,7 +15,7 @@ import {Button} from '../ui/button';
 import {toast} from 'sonner';
 import AddProject from './AddProjects';
 import {onAuthStateChanged} from 'firebase/auth';
-import {MoreVertical} from 'lucide-react';
+import {MoreVertical ,CheckCircle, Circle} from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -116,8 +116,8 @@ export default function AddedProjects({
                 selectedProjectId === project.id ? 'bg-gray-100' : ''
               }`}>
               <div className="flex text-sm mx-4 flex-row items-center justify-between w-full">
-                <div>
-                  <span>{project.isComplete ? ' ✅ ' : ' 📌 '}</span>
+                <div className='flex justify-between '>
+                <span className='mr-2'>{project.isComplete ? <CheckCircle size={18} color='green'/>:<Circle size={18} color='red'/>}</span>
                   <span
                     className={
                       project.isComplete

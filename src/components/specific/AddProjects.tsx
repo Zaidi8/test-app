@@ -88,6 +88,12 @@ export default function AddProject({
     }
   };
 
+  const handleCloseDialog = () =>{
+    setOpen(false);
+    setProjectName('');
+    setEditingProject(null);
+  }
+
   useEffect(() => {
     if (editingProject) {
       setProjectName(editingProject.title);
@@ -96,7 +102,12 @@ export default function AddProject({
   }, [editingProject]);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(isOpen) => {
+      if (!isOpen) {
+        handleCloseDialog(); // Clear state when dialog is closed
+      }
+      setOpen(isOpen);
+    }}>
       <DialogTrigger asChild>
         <Button className="cursor-pointer mt-2">+ Add Project</Button>
       </DialogTrigger>

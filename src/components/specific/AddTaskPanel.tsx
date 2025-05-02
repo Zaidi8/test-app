@@ -13,7 +13,7 @@ export default function AddTaskPanel({projectId, onTaskAdded}: AddTaskPanelProps
   const [showPanel, setShowPanel] = useState(false);
 
   return (
-    <>
+    <div className='relative h-full'>
       {/* Slide-up panel */}
       <div
         className={`fixed bottom-0 left-0 right-0 z-50 bg-white shadow-xl transition-transform duration-300 ease-in-out rounded-t-2xl ${
@@ -39,14 +39,14 @@ export default function AddTaskPanel({projectId, onTaskAdded}: AddTaskPanelProps
       </div>
 
       {/* Bottom center button */}
-      <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-40">
+      <div className=" bg-red-500 flex absolute items-end -bottom-4 justify-center inset-x-0 z-40">
         <Button
           onClick={() => setShowPanel(true)}
           className="px-6 py-3 rounded-full shadow-lg"
-        >
+          >
           Create a new task
         </Button>
       </div>
-    </>
+    </div>
   );
 }

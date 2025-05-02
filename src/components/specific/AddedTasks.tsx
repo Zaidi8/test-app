@@ -2,10 +2,9 @@
 
 import {useEffect, useState} from 'react';
 import {Card} from '../ui/card';
-import {Badge} from '../ui/badge';
 import {Button} from '../ui/button';
 import {Checkbox} from '../ui/checkbox';
-import {MoreVertical} from 'lucide-react';
+import {MoreVertical,Clock} from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -26,7 +25,7 @@ import {toast} from 'sonner';
 import {TaskType} from '@/types/project';
 import AddTaskPanel from './AddTaskPanel';
 import { Header } from '../ui/Header';
-import EditProjectDialog from './EditTaskDialog';
+import EditTaskDialog from './EditTaskDialog';
 import { onAuthStateChanged } from 'firebase/auth';
 
 export default function AddedTasks({projectId}: {projectId: string}) {
@@ -131,7 +130,7 @@ export default function AddedTasks({projectId}: {projectId: string}) {
       <Header title='Hello ' />
       {tasks.map(task => (
         <Card key={task.id} className="m-1 p-2 flex flex-row justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 ">
             <Checkbox
               checked={task.isComplete}
               onCheckedChange={() => toggleComplete(task)}
@@ -145,11 +144,16 @@ export default function AddedTasks({projectId}: {projectId: string}) {
             </p>
           </div>
           <div className='flex flex-row'>
-            <Badge className='mx-2 bg-gray-200' variant={"secondary"}>{task.time}</Badge>
+            <div className='flex flex-row mx-2 items-center px-2 rounded-sm bg-gray-200'>
+            <Clock size={16} color='#4a5565'/>
+            <p className='font-medium text-xs text-gray-600 mx-1'>
+               {task.time}
+              </p>
+            </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="secondary" size="icon" className="bg-gray-200 cursor-pointer">
-                  <MoreVertical />
+                  <MoreVertical color='#4a5565'/>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -180,7 +184,7 @@ export default function AddedTasks({projectId}: {projectId: string}) {
         </Card>
       ))}
 
-<EditProjectDialog
+<EditTaskDialog
         open={openDialog}
         setOpen={setOpenDialog}
         taskName={taskName}
