@@ -20,14 +20,22 @@ import {
   onSnapshot,
   query,
   updateDoc,
+  orderBy
 } from 'firebase/firestore';
 import {toast} from 'sonner';
 import {TaskType} from '@/types/project';
-import AddTask from './AddTasks';
+import AddTaskPanel from './AddTaskPanel';
+import { Header } from '../ui/Header';
+import EditProjectDialog from './EditTaskDialog';
+import { onAuthStateChanged } from 'firebase/auth';
 
 export default function AddedTasks({projectId}: {projectId: string}) {
   const [tasks, setTasks] = useState<TaskType[]>([]);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [taskName, setTaskName] = useState('');
+  const [taskTime, setTaskTime] = useState('');
   const [editingTask, setEditingTask] = useState<TaskType | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const toggleComplete = async (task: TaskType) => {
     const user = auth.currentUser;
@@ -47,6 +55,31 @@ export default function AddedTasks({projectId}: {projectId: string}) {
     }
   };
 
+  const handleEditSubmit = async () => {
+    if (!editingTask) return;
+    const user = auth.currentUser;
+    if (!user) return;
+  
+    setLoading(true);
+    try {
+      await updateDoc(
+        doc(db, 'users', user.uid, 'projects', projectId, 'tasks', editingTask.id),
+        {
+          title: taskName,
+          time: taskTime,
+        }
+      );
+      toast.success('Task updated!');
+      setOpenDialog(false);
+      setEditingTask(null);
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to update task');
+    } finally {
+      setLoading(false);
+    }
+  }
+  
   const deleteTask = async (taskId: string) => {
     const user = auth.currentUser;
     if (!user) return;
@@ -63,33 +96,41 @@ export default function AddedTasks({projectId}: {projectId: string}) {
   };
 
   useEffect(() => {
-    const fetchTasks = () => {
-      const user = auth.currentUser;
-      if (!user) return;
+    let unsubscribe: () => void;
 
-      const q = query(
-        collection(db, 'users', user.uid, 'projects', projectId, 'tasks'),
-      );
-      const unsubscribe = onSnapshot(q, snapshot => {
-        const fetchedTasks = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as TaskType[];
-        setTasks(fetchedTasks);
-      });
+    const unsubscribeAuth = onAuthStateChanged(auth, user => {
+      if (user && projectId) {
+        const q = query(
+          collection(db, 'users', user.uid, 'projects', projectId, 'tasks'),
+          orderBy('createdAt', 'desc')
+        );
 
-      return () => unsubscribe();
-    };
-    const unsubscribe = fetchTasks();
+        unsubscribe = onSnapshot(q, snapshot => {
+          const fetchedTasks = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+          })) as TaskType[];
+
+          setTasks(fetchedTasks);
+          setLoading(false);
+        });
+      } else {
+        setTasks([]);
+        setLoading(false);
+      }
+    });
+
     return () => {
+      unsubscribeAuth();
       if (unsubscribe) unsubscribe();
     };
   }, [projectId]);
 
   return (
-    <div>
+    <div className='mx-10'>
+      <Header title='Hello ' />
       {tasks.map(task => (
-        <Card key={task.id} className="mb-2 p-3 flex flex-row justify-between">
+        <Card key={task.id} className="m-1 p-2 flex flex-row justify-between">
           <div className="flex items-center gap-3">
             <Checkbox
               checked={task.isComplete}
@@ -103,20 +144,24 @@ export default function AddedTasks({projectId}: {projectId: string}) {
               {task.title}
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Badge>{task.time}</Badge>
-          </div>
-          <div>
+          <div className='flex flex-row'>
+            <Badge className='mx-2 bg-gray-200' variant={"secondary"}>{task.time}</Badge>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="cursor-pointer">
+                <Button variant="secondary" size="icon" className="bg-gray-200 cursor-pointer">
                   <MoreVertical />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem
                   className="cursor-pointer"
-                  onClick={() => setEditingTask(task)}>
+                  onClick={() => {
+                    setEditingTask(task);
+                    setTaskName(task.title);
+                    setTaskTime(task.time);
+                    setOpenDialog(true);
+                  }}
+                  >
                   Edit
                 </DropdownMenuItem>
                 <DropdownMenuItem
@@ -135,12 +180,18 @@ export default function AddedTasks({projectId}: {projectId: string}) {
         </Card>
       ))}
 
-      <AddTask
-        onTaskAdded={() => {}}
-        editingTask={editingTask}
-        setEditingTask={setEditingTask}
-        projectId={projectId}
+<EditProjectDialog
+        open={openDialog}
+        setOpen={setOpenDialog}
+        taskName={taskName}
+        setTaskName={setTaskName}
+        taskTime={taskTime}
+        setTaskTime={setTaskTime}
+        handleSubmitTask={handleEditSubmit}
+        loading={loading}
       />
+<AddTaskPanel projectId={projectId} onTaskAdded={()=>{}} />
+
     </div>
   );
 }
