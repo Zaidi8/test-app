@@ -104,7 +104,7 @@ export default function AddProject({
   return (
     <Dialog open={open} onOpenChange={(isOpen) => {
       if (!isOpen) {
-        handleCloseDialog(); // Clear state when dialog is closed
+        handleCloseDialog();
       }
       setOpen(isOpen);
     }}>

@@ -1,25 +1,23 @@
 'use client';
-import {useState} from 'react';
 import {Button} from '../ui/button';
 import {X} from 'lucide-react';
 import AddTask from './AddTasks';
 
 interface AddTaskPanelProps {
   projectId: string;
-  onTaskAdded: () => void;
+  showPanel : boolean
+  setShowPanel: (value: boolean) => void;
 }
 
-export default function AddTaskPanel({projectId, onTaskAdded}: AddTaskPanelProps) {
-  const [showPanel, setShowPanel] = useState(false);
+export default function AddTaskPanel({projectId,showPanel,setShowPanel}: AddTaskPanelProps) {
 
   return (
-    <div className='relative h-full'>
-      {/* Slide-up panel */}
+<>
       <div
-        className={`fixed bottom-0 left-0 right-0 z-50 bg-white shadow-xl transition-transform duration-300 ease-in-out rounded-t-2xl ${
-          showPanel ? 'translate-y-0' : 'translate-y-full'
+        className={`fixed bottom-0 left-1/2 transform -translate-x-1/3 z-50 bg-white shadow-xl transition-transform duration-300 ease-in-out rounded-2xl ${
+          showPanel ? 'bottom-[70px] translate-y-0' : 'translate-y-full '
         }`}
-        style={{minHeight: '300px'}}
+        style={{minHeight: '300px',width:'100%',maxWidth:'430px'}}
       >
         <div className="flex justify-between items-center p-4 border-b">
           <h2 className="text-lg font-semibold">Create New Task</h2>
@@ -27,26 +25,15 @@ export default function AddTaskPanel({projectId, onTaskAdded}: AddTaskPanelProps
             <X />
           </Button>
         </div>
-        <div className="p-4">
+        <div className="w-full max-w-[430px] mx-auto px-4">
           <AddTask
             projectId={projectId}
             onTaskAdded={() => {
-              onTaskAdded();
               setShowPanel(false);
             }}
           />
         </div>
-      </div>
-
-      {/* Bottom center button */}
-      <div className=" bg-red-500 flex absolute items-end -bottom-4 justify-center inset-x-0 z-40">
-        <Button
-          onClick={() => setShowPanel(true)}
-          className="px-6 py-3 rounded-full shadow-lg"
-          >
-          Create a new task
-        </Button>
-      </div>
-    </div>
+        </div>
+    </>
   );
 }

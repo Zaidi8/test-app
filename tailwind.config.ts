@@ -5,7 +5,11 @@ const config: Config = {
     './src/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
-    extend: {},
+    extend: {
+        colors: {
+          checkbox:'#34C759'
+        }
+    },
   },
   plugins: [],
 };

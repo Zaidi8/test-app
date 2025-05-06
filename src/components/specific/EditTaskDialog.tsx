@@ -23,8 +23,20 @@ export default function EditTaskDialog({
   handleSubmitTask,
   loading,
 }: EditTaskDialogProps) {
+
+
+  const handleCloseDialog = () =>{
+    setOpen(false);
+    setTaskName('')
+    setTaskTime('')
+  }
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(isOpen) => {
+      if (!isOpen) {
+        handleCloseDialog();
+      }
+      setOpen(isOpen);
+    }}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle> Edit Task</DialogTitle>

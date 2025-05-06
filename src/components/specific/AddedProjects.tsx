@@ -8,6 +8,8 @@ import {
   doc,
   updateDoc,
   deleteDoc,
+  getDocs,
+  writeBatch,
 } from 'firebase/firestore';
 import {db, auth} from '../../../firebaseConfig';
 import {ProjectType} from '@/types/project';
@@ -87,6 +89,17 @@ export default function AddedProjects({
           isComplete: !project.isComplete,
         },
       );
+
+      if (!project.isComplete){
+        const taskRef = collection(db, 'users',project.userId , 'projects' , project.id , 'tasks')
+        const taskSnapshot = await getDocs(taskRef)
+
+        const batch = writeBatch(db);
+        taskSnapshot.forEach(task => {
+          batch.update(task.ref , {isComplete: true});
+        });
+        await batch.commit();
+      }
       toast.success('Status updated');
     } catch (error) {
       console.error('Failed to update status', error);
