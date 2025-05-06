@@ -105,6 +105,7 @@ await updateDoc(projectRef, { isComplete: false });
         <div className="mx-4 ">
           <Textarea
             value={taskTitle}
+            maxLength={100}
             onChange={e => setTaskTitle(e.target.value)}
             placeholder="Task title"
             

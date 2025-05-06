@@ -7,7 +7,8 @@ const config: Config = {
   theme: {
     extend: {
         colors: {
-          checkbox:'#34C759'
+          checkbox:'#34C759',
+          bg:'#ffffff',
         }
     },
   },
