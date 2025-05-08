@@ -13,10 +13,14 @@ import {
 import {Button} from '@/components/ui/button';
 import {auth} from '../../../firebaseConfig';
 import {useRouter} from 'next/navigation';
+import AddedProjects from '../specific/AddedProjects';
 
 export default function DashboardHeader() {
   const router = useRouter();
   const [displayName, setDisplayName] = useState('');
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
+    null,
+  );
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, user => {
@@ -47,11 +51,15 @@ export default function DashboardHeader() {
             ☰
           </Button>
         </SheetTrigger>
-        <SheetContent side="left"></SheetContent>
+        <SheetContent side="left">
+<AddedProjects
+          selectedProjectId={selectedProjectId}
+          setSelectedProjectId={setSelectedProjectId}
+        />        </SheetContent>
       </Sheet>
 
       <div>
-        <h1 className="text-xl font-bold">Hello {displayName}</h1>
+        <h1 className="text-xl font-bold truncate max-w-[150px] sm:max-w-none">Hello {displayName}</h1>
       </div>
 
       <div className="flex items-center space-x-4">
@@ -62,7 +70,7 @@ export default function DashboardHeader() {
               <AvatarFallback>U</AvatarFallback>
             </Avatar>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end" className='mix-w-[150px]'>
             <DropdownMenuItem className="cursor-pointer">
               Profile
             </DropdownMenuItem>

@@ -101,8 +101,8 @@ await updateDoc(projectRef, { isComplete: false });
   
   return (
     <div >
-      <div className='my-5 p-5'>
-        <div className="mx-4 ">
+      <div className='my-5'>
+        <div >
           <Textarea
             value={taskTitle}
             maxLength={100}
@@ -111,12 +111,12 @@ await updateDoc(projectRef, { isComplete: false });
             
             />
         </div>
-        <div className="mx-4 my-4 grid grid-cols-4 gap-2">
+        <div className="my-4 grid grid-cols-4 gap-2">
   {timeSlots.map(time => (
     <button
       key={time}
       onClick={() => handleTimeClick(time)}
-      className={` py-2 rounded-4xl px-5 text-sm ${
+      className={` py-2 rounded-4xl cursor-pointer text-sm ${
         selectedTimes.includes(time)
           ? 'bg-blue-600 text-white'
           : highlitedTimes.includes(time)
@@ -130,8 +130,8 @@ await updateDoc(projectRef, { isComplete: false });
 </div>
 
       </div>
-      <div className="my-4 mx-5 text-center">
-        <Button onClick={handleAddTask} className='rounded-4xl w-full' disabled={loading} color='#155dfc'>
+      <div className="mt-4 mb-2 text-center">
+        <Button onClick={handleAddTask} className='rounded-4xl cursor-pointer w-full' disabled={loading} color='#155dfc'>
           {loading
             ? 
                'Adding...':'Add Task'}

@@ -230,7 +230,7 @@ const toggleComplete = async (
         />
 <Button
   onClick={() => setShowPanel(true)}
-  className="fixed bottom-6 left-1/2 transform -translate-x-1/12 px-6 py-3 rounded-full shadow-lg z-50"
+  className="fixed cursor-pointer bottom-6 left-1/2 transform -translate-x-1/12 px-6 py-3 rounded-full max-w-[430px] w-full shadow-lg z-50"
 >
   Create a new task
 </Button>
