@@ -124,7 +124,7 @@ const toggleComplete = async (
     <div className='px-4 sm:px-6 md:px-10 lg:px-16 2xl:px-32 max-w-[1440px] mx-auto w-full'>
       {tasks.map(task => (
         <Card key={task.id} className="m-1 p-2 flex flex-col sm:flex-row  gap-2 justify-between">
-          <div className="flex items-center gap-2 sm:w-[70%]">
+          <div className="flex items-center gap-2 sm:w-[60%]">
             <Checkbox
               checked={task.isComplete}
               onCheckedChange={() =>{ 
