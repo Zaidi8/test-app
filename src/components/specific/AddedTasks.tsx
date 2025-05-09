@@ -25,17 +25,12 @@ import {
 import {toast} from 'sonner';
 import {TaskType} from '@/types/project';
 import AddTaskPanel from './AddTaskPanel';
-import EditTaskDialog from './EditTaskDialog';
 import { onAuthStateChanged } from 'firebase/auth';
 
 export default function AddedTasks({projectId}: {projectId: string}) {
   const [tasks, setTasks] = useState<TaskType[]>([]);
-  const [openDialog, setOpenDialog] = useState(false);
-  const [taskName, setTaskName] = useState('');
-  const [taskTime, setTaskTime] = useState('');
-  const [editingTask, setEditingTask] = useState<TaskType | null>(null);
-  const [loading, setLoading] = useState(false);
   const [showPanel, setShowPanel] = useState(false);
+  const [editingTask, setEditingTask] = useState<TaskType | null>(null);
 
 
   const userId = auth.currentUser?.uid;
@@ -75,30 +70,6 @@ const toggleComplete = async (
   }
 };
 
-  const handleEditSubmit = async () => {
-    if (!editingTask) return;
-    const user = auth.currentUser;
-    if (!user) return;
-  
-    setLoading(true);
-    try {
-      await updateDoc(
-        doc(db, 'users', user.uid, 'projects', projectId, 'tasks', editingTask.id),
-        {
-          title: taskName,
-          time: taskTime,
-        }
-      );
-      toast.success('Task updated!');
-      setOpenDialog(false);
-      setEditingTask(null);
-    } catch (err) {
-      console.error(err);
-      toast.error('Failed to update task');
-    } finally {
-      setLoading(false);
-    }
-  }
   
   const deleteTask = async (taskId: string) => {
     const user = auth.currentUser;
@@ -132,11 +103,9 @@ const toggleComplete = async (
           })) as TaskType[];
 
           setTasks(fetchedTasks);
-          setLoading(false);
         });
       } else {
         setTasks([]);
-        setLoading(false);
       }
     });
 
@@ -152,10 +121,10 @@ const toggleComplete = async (
       {tasks.length === 0 && (
         <p className="text-muted-foreground text-center h-full content-center text-base my-4">No tasks added yet. Add one to get started!</p>
       )}    
-    <div className='mx-10'>
+    <div className='px-4 sm:px-6 md:px-10 lg:px-16 2xl:px-32 max-w-[1440px] mx-auto w-full'>
       {tasks.map(task => (
-        <Card key={task.id} className="m-1 p-2 flex flex-row justify-between">
-          <div className="flex items-center gap-2 w-[70%]">
+        <Card key={task.id} className="m-1 p-2 flex flex-col sm:flex-row  gap-2 justify-between">
+          <div className="flex items-center gap-2 sm:w-[70%]">
             <Checkbox
               checked={task.isComplete}
               onCheckedChange={() =>{ 
@@ -173,7 +142,7 @@ const toggleComplete = async (
               {task.title}
             </p>
           </div>
-          <div className='flex flex-row self-center'>
+          <div className='flex flex-row justify-between self-center'>
             <div className='flex flex-row mx-2 items-center px-2 rounded-sm bg-gray-200'>
             <Clock size={16} color='#4a5565'/>
             <p className='font-medium text-xs whitespace-nowrap max-w-fit text-center text-gray-600 mx-1'>
@@ -191,9 +160,7 @@ const toggleComplete = async (
                   className="cursor-pointer"
                   onClick={() => {
                     setEditingTask(task);
-                    setTaskName(task.title);
-                    setTaskTime(task.time);
-                    setOpenDialog(true);
+                    setShowPanel(true);
                   }}
                   >
                   Edit
@@ -218,23 +185,15 @@ const toggleComplete = async (
         </Card>
       ))}
 
-<EditTaskDialog
-        open={openDialog}
-        setOpen={setOpenDialog}
-        taskName={taskName}
-        setTaskName={setTaskName}
-        taskTime={taskTime}
-        setTaskTime={setTaskTime}
-        handleSubmitTask={handleEditSubmit}
-        loading={loading}
-        />
 <Button
-  onClick={() => setShowPanel(true)}
-  className="fixed cursor-pointer bottom-6 left-1/2 transform -translate-x-1/12 px-6 py-3 rounded-full max-w-[430px] w-full shadow-lg z-50"
+  onClick={() => {setShowPanel(true);
+                  setEditingTask(null)
+  }}
+  className="fixed cursor-pointer bottom-6 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full w-[90%] sm:w-[80%] md:w-[60%] lg:w-[40%] xl:w-[30%] max-w-[430px] shadow-lg z-50"
 >
   Create a new task
 </Button>
-<AddTaskPanel projectId={projectId} showPanel={showPanel} setShowPanel={setShowPanel}/>
+<AddTaskPanel projectId={projectId} showPanel={showPanel} setShowPanel={setShowPanel} editingTask={editingTask} setEditingTask={setEditingTask} />
 
 
     </div>

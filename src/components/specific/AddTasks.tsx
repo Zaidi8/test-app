@@ -1,5 +1,5 @@
 'use client';
-import {useState} from 'react';
+import {useState,useEffect} from 'react';
 import {db} from '../../../firebaseConfig';
 import {
   addDoc,
@@ -9,75 +9,88 @@ import {
   doc,
 } from 'firebase/firestore';
 import {toast} from 'sonner';
-import {Button} from '../ui/button'; // Assuming these components exist in your UI folder
+import {Button} from '../ui/button';
 import {auth} from '../../../firebaseConfig';
 import { Textarea } from '../ui/textarea';
 
 interface AddTaskProps {
   projectId: string;
   onTaskAdded: () => void;
+  editingTask? : {
+    id:string;
+    title:string;
+    time:string;
+  } | null
+  setEditingTask : (task:null) => void
 }
 
 export default function AddTask({
   projectId,
-  onTaskAdded
+  onTaskAdded,
+  editingTask,
+  setEditingTask
 }: AddTaskProps) {
   const [taskTitle, setTaskTitle] = useState('');
   const [loading, setLoading] = useState(false);
   const [selectedTimes, setSelectedTimes] = useState<string[]>([]);
-
+  
   const timeSlots = Array.from({ length: 24 }, (_, i) =>
     `${(1 + i).toString().padStart(2, '0')}:00`
-  );
-  const handleTimeClick = (time: string) => {
-    if (selectedTimes.includes(time)) {
-      setSelectedTimes(selectedTimes.filter(t => t !== time));
-    } else if (selectedTimes.length < 2) {
-      setSelectedTimes([...selectedTimes, time]);
-    } else {
-      toast.error('Select only 2 times (start and end)');
-    }
-  };
+);
+const handleTimeClick = (time: string) => {
+  if (selectedTimes.includes(time)) {
+    setSelectedTimes(selectedTimes.filter(t => t !== time));
+  } else if (selectedTimes.length < 2) {
+    setSelectedTimes([...selectedTimes, time]);
+  } else {
+    toast.error('Select only 2 times (start and end)');
+  }
+};
+
+const [start , end] = selectedTimes.sort();
+const highlitedTimes = selectedTimes.length === 2? timeSlots.slice(timeSlots.indexOf(start) , timeSlots.indexOf(end)+1):[];
+const handleAddTask = async () => {
   
-  const [start , end] = selectedTimes.sort();
-  const highlitedTimes = selectedTimes.length === 2? timeSlots.slice(timeSlots.indexOf(start) , timeSlots.indexOf(end)+1):[];
-  const handleAddTask = async () => {
-    
-    if (!taskTitle.trim()) {
-      toast.error('Task title cannot be empty.');
-      return;
-    }
-    
-    if (!projectId) {
-      toast.error('No project selected.');
-      return;
-    }
-    setLoading(true);
-    
-    const user = auth.currentUser;
-    if (!user) {
-      toast.error('User not logged in.');
-      return;
-    }
-    
-    setLoading(true);
-    if (selectedTimes.length !== 2) {
-      toast.error('Please select a start and end time.');
-      return;
-    }
-    
-    const [start, end] = selectedTimes.sort();
-    const timeRange = `${start} - ${end}`;
-    
-    try {
-      const taskData = {
-        title: taskTitle,
-        projectId,
-        createdAt: serverTimestamp(),
-        time: timeRange,
+  if (!taskTitle.trim()) {
+    toast.error('Task title cannot be empty.');
+    return;
+  }
+  
+  if (!projectId) {
+    toast.error('No project selected.');
+    return;
+  }
+  setLoading(true);
+  
+  const user = auth.currentUser;
+  if (!user) {
+    toast.error('User not logged in.');
+    return;
+  }
+  
+  setLoading(true);
+  if (selectedTimes.length !== 2) {
+    toast.error('Please select a start and end time.');
+    return;
+  }
+  
+  const [start, end] = selectedTimes.sort();
+  const timeRange = `${start} - ${end}`;
+  
+  try {
+    const taskData = {
+      title: taskTitle,
+      projectId,
+      createdAt: serverTimestamp(),
+      time: timeRange,
         isComplete: false,
       };
-    
+      if (editingTask) {
+        const taskRef = doc(db, 'users', user.uid, 'projects', projectId, 'tasks', editingTask.id);
+        await updateDoc(taskRef, taskData);
+        toast.success('Task updated successfully!');
+        setEditingTask(null)
+      } else {
       await addDoc(
         collection(db, 'users', user.uid, 'projects', projectId, 'tasks'),
         taskData
@@ -86,22 +99,30 @@ export default function AddTask({
       const projectRef = doc(db, 'users', user.uid, 'projects', projectId);
 await updateDoc(projectRef, { isComplete: false });
 
-    
-      toast.success('Task added successfully!');
-      setTaskTitle('');
-      onTaskAdded();
-    } catch (error) {
-      console.error('Error adding task:', error);
-      toast.error('Failed to add task');
-    } finally {
-      setLoading(false);
+
+toast.success('Task added successfully!');
     }
-    
-  };
+setTaskTitle('');
+onTaskAdded();
+} catch (error) {
+  console.error('Error adding task:', error);
+  toast.error('Failed to add task');
+} finally {
+  setLoading(false);
+}
+
+};
+useEffect(() => {
+  if (editingTask) {
+    setTaskTitle(editingTask.title);
+    const [start, end] = editingTask.time.split(' - ');
+    setSelectedTimes([start, end]);
+  }
+}, [editingTask]);
   
   return (
     <div >
-      <div className='my-5'>
+      <div className='my-5 space-y-4'>
         <div >
           <Textarea
             value={taskTitle}
@@ -111,12 +132,12 @@ await updateDoc(projectRef, { isComplete: false });
             
             />
         </div>
-        <div className="my-4 grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-3 my-3 lg:grid-cols-4 gap-2">
   {timeSlots.map(time => (
-    <button
+    <Button
       key={time}
       onClick={() => handleTimeClick(time)}
-      className={` py-2 rounded-4xl cursor-pointer text-sm ${
+      className={`py-2 rounded-4xl cursor-pointer text-sm ${
         selectedTimes.includes(time)
           ? 'bg-blue-600 text-white'
           : highlitedTimes.includes(time)
@@ -125,7 +146,7 @@ await updateDoc(projectRef, { isComplete: false });
       }`}
     >
       {time}
-    </button>
+    </Button>
   ))}
 </div>
 
@@ -134,7 +155,7 @@ await updateDoc(projectRef, { isComplete: false });
         <Button onClick={handleAddTask} className='rounded-4xl cursor-pointer w-full' disabled={loading} color='#155dfc'>
           {loading
             ? 
-               'Adding...':'Add Task'}
+               (editingTask? 'Updating...': 'Adding...'):(editingTask? 'Update Task': 'Add Task')}
                
         </Button>
       </div>

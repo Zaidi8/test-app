@@ -14,13 +14,13 @@ import {Button} from '@/components/ui/button';
 import {auth} from '../../../firebaseConfig';
 import {useRouter} from 'next/navigation';
 import AddedProjects from '../specific/AddedProjects';
+import { useProjectStore } from '@/store/projectStore';
 
 export default function DashboardHeader() {
   const router = useRouter();
   const [displayName, setDisplayName] = useState('');
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
-    null,
-  );
+  const selectedProjectId = useProjectStore(state => state.selectedProjectId)
+  const setSelectedProjectId = useProjectStore(state => state.setSelectedProjectId)
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, user => {
@@ -51,7 +51,7 @@ export default function DashboardHeader() {
             ☰
           </Button>
         </SheetTrigger>
-        <SheetContent side="left">
+        <SheetContent side="left" className='pt-4'>
 <AddedProjects
           selectedProjectId={selectedProjectId}
           setSelectedProjectId={setSelectedProjectId}

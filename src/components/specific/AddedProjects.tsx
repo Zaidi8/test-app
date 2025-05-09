@@ -118,8 +118,8 @@ export default function AddedProjects({
   };
 
   return (
-    <div className="mx-6 rounded-lg h-full bg-white">
-      <div className="mx-8 pt-10">
+    <div className="mx-auto w-full sm:min-w-[250px] max-w-full lg:max-w-md xl:max-w-lg 2xl:max-w-xl rounded-lg h-full bg-white">
+      <div className="px-4 sm:px-6 lg:px-8 xl:px-10 pt-6 sm:pt-8 lg:pt-10"> 
         <div>
           {projects.map(project => (
             <div
@@ -128,15 +128,19 @@ export default function AddedProjects({
               className={`flex mb-2 rounded-sm items-center cursor-pointer ${
                 selectedProjectId === project.id ? 'bg-gray-100' : ''
               }`}>
-              <div className="flex text-sm mx-4 flex-row items-center justify-between w-full">
-                <div className='flex justify-between '>
-                <span className='mr-2'>{project.isComplete ? <CheckCircle size={18} color='green'/>:<Circle size={18} color='red'/>}</span>
+              <div className="flex text-sm lg:text-base xl:text-lg mx-4 flex-row items-center justify-between w-full">
+                <div className='flex items-center justify-between '>
+                <span className='mr-2'>
+                  {project.isComplete ?
+                   <CheckCircle size={18} color='green'/>:
+                   <Circle size={18} color='red'/>}</span>
                   <span
-                    className={
-                      project.isComplete
-                        ? 'line-through text-muted-foreground'
+                    className={`truncate 
+                      ${project.isComplete? 
+                        'line-through text-muted-foreground'
                         : ''
-                    }>
+                      } max-w-[140px] sm:max-w-[200px] md:max-w-[250px] lg:max-w-[300px] xl:max-w-[400px]`}
+                      >
                     {project.title}
                   </span>
                 </div>

@@ -114,7 +114,7 @@ export default function AddProject({
 
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add New Project</DialogTitle>
+        <DialogTitle>{editingProject ? 'Edit Project' : 'Add New Project'}</DialogTitle>
         </DialogHeader>
 
         <Input
