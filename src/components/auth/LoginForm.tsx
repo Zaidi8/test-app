@@ -25,7 +25,7 @@ export function LoginForm() {
       const user = await signInUser(email, password);
       console.log('User logged in:', user);
       document.cookie = `authToken=true; path=/; max-age=86400`;
-      router.push('/dashboard');
+      router.push('/dashboard/projects');
     } catch (err: unknown) {
       let message = 'Something went wrong. Please try again.';
 
