@@ -127,6 +127,8 @@ useEffect(() => {
           <Textarea
             value={taskTitle}
             maxLength={100}
+            rows={3}
+            className='resize-none max-h-[60px] '
             onChange={e => setTaskTitle(e.target.value)}
             placeholder="Task title"
             

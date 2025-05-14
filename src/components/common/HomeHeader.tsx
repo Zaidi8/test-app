@@ -14,14 +14,11 @@ import {Button} from '@/components/ui/button';
 import {auth} from '../../../firebaseConfig';
 import {useRouter} from 'next/navigation';
 import AddedProjects from '../specific/AddedProjects';
-import { useProjectStore } from '@/store/projectStore';
 
 export default function DashboardHeader() {
   const router = useRouter();
   const [displayName, setDisplayName] = useState('');
-  const selectedProjectId = useProjectStore(state => state.selectedProjectId)
-  const setSelectedProjectId = useProjectStore(state => state.setSelectedProjectId)
-
+  const [open, setOpen] = useState(false);
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, user => {
       if (user) {
@@ -45,17 +42,15 @@ export default function DashboardHeader() {
   };
   return (
     <header className="flex items-center justify-between px-6 py-4 shadow-sm bg-white">
-      <Sheet>
+      <Sheet open={open} onOpenChange={setOpen} >
         <SheetTrigger className="md:hidden" asChild>
           <Button variant="ghost" size="icon">
             ☰
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className='pt-4'>
-<AddedProjects
-          selectedProjectId={selectedProjectId}
-          setSelectedProjectId={setSelectedProjectId}
-        />        </SheetContent>
+          <AddedProjects onProjectSelect={()=>setOpen(false)}/>
+            </SheetContent>
       </Sheet>
 
       <div>

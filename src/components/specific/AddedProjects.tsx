@@ -24,36 +24,26 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '../ui/dropdown-menu';
+import { useParams,useRouter } from 'next/navigation';
 
-interface AddedProjectsProps {
-  selectedProjectId: string | null;
-  setSelectedProjectId: (id: string) => void;
+interface AddedProjectsProps{
+  onProjectSelect?:()=>void
 }
 
-export default function AddedProjects({
-  selectedProjectId,
-  setSelectedProjectId,
-}: AddedProjectsProps) {
+export default function AddedProjects({onProjectSelect}:AddedProjectsProps) {
   const [projects, setProjects] = useState<ProjectType[]>([]);
   const [editingProject, setEditingProject] = useState<ProjectType | null>(
     null,
   );
+  const params = useParams();
+  const router = useRouter();
 
-  const handleProjectAdded = () => {
-    const user = auth.currentUser;
-    if (!user) return;
-
-    const q = query(collection(db, 'users', user.uid, 'projects'));
-    const unsubscribe = onSnapshot(q, snapshot => {
-      const fetchedProjects: ProjectType[] = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as ProjectType[];
-      setProjects(fetchedProjects);
-    });
-
-    return () => unsubscribe();
-  };
+  const selectedProjectId = params?.projectId as string | undefined;
+  const setSelectedProjectId = (id:string) => {
+    router.push(`/dashboard/projects/${id}`)
+    if (onProjectSelect) onProjectSelect()
+  }
+  
 
   const editProject = (project: ProjectType) => {
     setEditingProject(project);
@@ -192,7 +182,7 @@ export default function AddedProjects({
         <AddProject
           editingProject={editingProject}
           setEditingProject={setEditingProject}
-          onProjectAdded={handleProjectAdded}
+          onProjectAdded={()=>{}}
         />
       </div>
     </div>

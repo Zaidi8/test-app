@@ -26,8 +26,10 @@ import {toast} from 'sonner';
 import {TaskType} from '@/types/project';
 import AddTaskPanel from './AddTaskPanel';
 import { onAuthStateChanged } from 'firebase/auth';
+import { useParams } from 'next/navigation';
 
-export default function AddedTasks({projectId}: {projectId: string}) {
+export default function AddedTasks() {
+  const {projectId} = useParams() as {projectId:string}  
   const [tasks, setTasks] = useState<TaskType[]>([]);
   const [showPanel, setShowPanel] = useState(false);
   const [editingTask, setEditingTask] = useState<TaskType | null>(null);
@@ -124,7 +126,7 @@ const toggleComplete = async (
     <div className='px-4 sm:px-6 md:px-10 lg:px-16 2xl:px-32 max-w-[1440px] mx-auto w-full'>
       {tasks.map(task => (
         <Card key={task.id} className="m-1 p-2 flex flex-col sm:flex-row  gap-2 justify-between">
-          <div className="flex items-center gap-2 sm:w-[60%]">
+          <div className="flex items-center mx-2 gap-2 sm:w-[60%]">
             <Checkbox
               checked={task.isComplete}
               onCheckedChange={() =>{ 
@@ -142,7 +144,7 @@ const toggleComplete = async (
               {task.title}
             </p>
           </div>
-          <div className='flex flex-row justify-between self-center'>
+          <div className='flex flex-row justify-between w-full sm:w-auto self-center'>
             <div className='flex flex-row mx-2 items-center px-2 rounded-sm bg-gray-200'>
             <Clock size={16} color='#4a5565'/>
             <p className='font-medium text-xs whitespace-nowrap max-w-fit text-center text-gray-600 mx-1'>
