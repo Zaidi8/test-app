@@ -7,7 +7,10 @@ import {TextLink} from '../ui/TextLink';
 import {Button} from '../ui/button';
 import {Input} from '../ui/input';
 import {signInUser} from '../../api/AuthServices';
-
+import {signInWithGoogle} from '@/api/GoogleSignIn';
+import {FcGoogle} from 'react-icons/fc';
+import {FaFacebookF} from 'react-icons/fa';
+import {signInWithFacebook} from '@/api/FacebookSignIn';
 export function LoginForm() {
   const router = useRouter();
 
@@ -15,6 +18,26 @@ export function LoginForm() {
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  const handleGoogleSignIn = async () => {
+    try {
+      const user = await signInWithGoogle();
+      console.log('Logged In', user);
+      router.push('/dashboard/projects');
+    } catch (error) {
+      console.error('Google sign in failed');
+    }
+  };
+
+  const handleFacebookSignIn = async () => {
+    try {
+      const user = await signInWithFacebook();
+      console.log('Logged In', user);
+      router.push('/dashboard/projects');
+    } catch (error) {
+      console.error('Facebook sign in failed');
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,7 +126,20 @@ export function LoginForm() {
           {isLoading ? 'Logging in...' : 'Login'}
         </Button>
       </div>
-
+      <div className="text-center">
+        <Button onClick={handleGoogleSignIn} className="w-full">
+          Continue With Google
+          <FcGoogle className="h-5 w-5" />
+        </Button>
+      </div>
+      <div className="text-center">
+        <Button
+          onClick={handleFacebookSignIn}
+          className=" bg-blue-600 w-full text-white hover:bg-blue-700">
+          <FaFacebookF className="w-5 h-5" />
+          Sign in with Facebook
+        </Button>
+      </div>
       <div className="text-center">
         <TextLink label="Don't have an account?" href="/auth/register" />
       </div>
