@@ -142,7 +142,7 @@ export default function AddTask({
             placeholder="Task title"
           />
         </div>
-        <div className="grid grid-cols-3 my-3 lg:grid-cols-4 gap-2">
+        <div className="grid grid-cols-4 my-3 gap-2">
           {timeSlots.map(time => (
             <Button
               key={time}

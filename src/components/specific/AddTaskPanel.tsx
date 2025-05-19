@@ -31,7 +31,7 @@ export default function AddTaskPanel({
     <>
       <div
         ref={ref}
-        className={`fixed bottom-0 left-1/2 transform -translate-x-1/2 z-50 bg-white shadow-xl transition-transform duration-300 ease-in-out rounded-2xl w-[95%] sm:w-[90%] md:w-[70%] lg:w-[50%] xl:w-[35%] 2xl:w-[30%] ${
+        className={`fixed bottom-0 left-1/2 transform -translate-x-1/2 z-50 bg-white shadow-xl transition-transform duration-300 ease-in-out rounded-2xl w-[75%] lg:w-[50%] xl:w-[35%] 2xl:w-[30%] ${
           showPanel ? 'bottom-[70px] translate-y-0' : 'translate-y-full'
         }`}
         style={{minHeight: '300px'}}>
