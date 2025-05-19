@@ -17,7 +17,7 @@ export default function ProjectsLayout({ children }: { children: ReactNode }) {
         </aside>
 
         {/* 70% Main Content (e.g., AddedTasks for projectId) */}
-        <main className="col-span-7 p-4">
+        <main className="col-span-7 pb-16 p-4">
           {children}
         </main>
       </div>

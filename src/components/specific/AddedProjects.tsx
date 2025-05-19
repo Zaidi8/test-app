@@ -17,20 +17,20 @@ import {Button} from '../ui/button';
 import {toast} from 'sonner';
 import AddProject from './AddProjects';
 import {onAuthStateChanged} from 'firebase/auth';
-import {MoreVertical ,CheckCircle, Circle} from 'lucide-react';
+import {MoreVertical, CheckCircle, Circle} from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
 } from '../ui/dropdown-menu';
-import { useParams,useRouter } from 'next/navigation';
+import {useParams, useRouter} from 'next/navigation';
 
-interface AddedProjectsProps{
-  onProjectSelect?:()=>void
+interface AddedProjectsProps {
+  onProjectSelect?: () => void;
 }
 
-export default function AddedProjects({onProjectSelect}:AddedProjectsProps) {
+export default function AddedProjects({onProjectSelect}: AddedProjectsProps) {
   const [projects, setProjects] = useState<ProjectType[]>([]);
   const [editingProject, setEditingProject] = useState<ProjectType | null>(
     null,
@@ -39,11 +39,10 @@ export default function AddedProjects({onProjectSelect}:AddedProjectsProps) {
   const router = useRouter();
 
   const selectedProjectId = params?.projectId as string | undefined;
-  const setSelectedProjectId = (id:string) => {
-    router.push(`/dashboard/projects/${id}`)
-    if (onProjectSelect) onProjectSelect()
-  }
-  
+  const setSelectedProjectId = (id: string) => {
+    router.push(`/dashboard/projects/${id}`);
+    if (onProjectSelect) onProjectSelect();
+  };
 
   const editProject = (project: ProjectType) => {
     setEditingProject(project);
@@ -80,13 +79,20 @@ export default function AddedProjects({onProjectSelect}:AddedProjectsProps) {
         },
       );
 
-      if (!project.isComplete){
-        const taskRef = collection(db, 'users',project.userId , 'projects' , project.id , 'tasks')
-        const taskSnapshot = await getDocs(taskRef)
+      if (!project.isComplete) {
+        const taskRef = collection(
+          db,
+          'users',
+          project.userId,
+          'projects',
+          project.id,
+          'tasks',
+        );
+        const taskSnapshot = await getDocs(taskRef);
 
         const batch = writeBatch(db);
         taskSnapshot.forEach(task => {
-          batch.update(task.ref , {isComplete: true});
+          batch.update(task.ref, {isComplete: true});
         });
         await batch.commit();
       }
@@ -109,7 +115,7 @@ export default function AddedProjects({onProjectSelect}:AddedProjectsProps) {
 
   return (
     <div className="mx-auto w-full sm:min-w-[250px] max-w-full lg:max-w-md xl:max-w-lg 2xl:max-w-xl rounded-lg h-full bg-white">
-      <div className="px-4 sm:px-6 lg:px-8 xl:px-10 pt-6 sm:pt-8 lg:pt-10"> 
+      <div className="px-4 sm:px-6 lg:px-8 xl:px-10 pt-6 sm:pt-8 lg:pt-10">
         <div>
           {projects.map(project => (
             <div
@@ -119,18 +125,21 @@ export default function AddedProjects({onProjectSelect}:AddedProjectsProps) {
                 selectedProjectId === project.id ? 'bg-gray-100' : ''
               }`}>
               <div className="flex text-sm lg:text-base xl:text-lg mx-4 flex-row items-center justify-between w-full">
-                <div className='flex items-center justify-between '>
-                <span className='mr-2'>
-                  {project.isComplete ?
-                   <CheckCircle size={18} color='green'/>:
-                   <Circle size={18} color='red'/>}</span>
+                <div className="flex items-center justify-between ">
+                  <span className="mr-2">
+                    {project.isComplete ? (
+                      <CheckCircle size={18} color="green" />
+                    ) : (
+                      <Circle size={18} color="red" />
+                    )}
+                  </span>
                   <span
                     className={`truncate 
-                      ${project.isComplete? 
-                        'line-through text-muted-foreground'
-                        : ''
-                      } max-w-[140px] sm:max-w-[200px] md:max-w-[250px] lg:max-w-[300px] xl:max-w-[400px]`}
-                      >
+                      ${
+                        project.isComplete
+                          ? 'line-through text-muted-foreground'
+                          : ''
+                      } max-w-[140px] sm:max-w-[200px] md:max-w-[250px] lg:max-w-[300px] xl:max-w-[400px]`}>
                     {project.title}
                   </span>
                 </div>
@@ -182,7 +191,7 @@ export default function AddedProjects({onProjectSelect}:AddedProjectsProps) {
         <AddProject
           editingProject={editingProject}
           setEditingProject={setEditingProject}
-          onProjectAdded={()=>{}}
+          onProjectAdded={() => {}}
         />
       </div>
     </div>

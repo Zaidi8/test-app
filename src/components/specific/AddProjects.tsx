@@ -88,11 +88,11 @@ export default function AddProject({
     }
   };
 
-  const handleCloseDialog = () =>{
+  const handleCloseDialog = () => {
     setOpen(false);
     setProjectName('');
     setEditingProject(null);
-  }
+  };
 
   useEffect(() => {
     if (editingProject) {
@@ -102,19 +102,23 @@ export default function AddProject({
   }, [editingProject]);
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => {
-      if (!isOpen) {
-        handleCloseDialog();
-      }
-      setOpen(isOpen);
-    }}>
+    <Dialog
+      open={open}
+      onOpenChange={isOpen => {
+        if (!isOpen) {
+          handleCloseDialog();
+        }
+        setOpen(isOpen);
+      }}>
       <DialogTrigger asChild>
         <Button className="cursor-pointer mt-2">+ Add Project</Button>
       </DialogTrigger>
 
       <DialogContent>
         <DialogHeader>
-        <DialogTitle>{editingProject ? 'Edit Project' : 'Add New Project'}</DialogTitle>
+          <DialogTitle>
+            {editingProject ? 'Edit Project' : 'Add New Project'}
+          </DialogTitle>
         </DialogHeader>
 
         <Input
