@@ -20,22 +20,28 @@ export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleGoogleSignIn = async () => {
+    setIsLoading(true);
     try {
       const user = await signInWithGoogle();
       console.log('Logged In', user);
       router.push('/dashboard/projects');
     } catch (error) {
-      console.error('Google sign in failed');
+      console.error('Google sign in failed', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleFacebookSignIn = async () => {
+    setIsLoading(true);
     try {
       const user = await signInWithFacebook();
       console.log('Logged In', user);
       router.push('/dashboard/projects');
     } catch (error) {
-      console.error('Facebook sign in failed');
+      console.error('Google sign in failed', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
