@@ -97,7 +97,7 @@ export function LoginForm() {
   return (
     <form
       onSubmit={handleLogin}
-      className="space-y-6 max-w-sm mx-auto p-4 bg-white rounded-xl shadow-md">
+      className="space-y-6 md:min-w-[25%] mx-auto p-4 bg-white rounded-xl shadow-md">
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
         <Input
