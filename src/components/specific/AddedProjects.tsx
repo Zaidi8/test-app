@@ -49,24 +49,55 @@ export default function AddedProjects({onProjectSelect}: AddedProjectsProps) {
   };
 
   useEffect(() => {
+    let unsubscribeProjects: (() => void) | undefined;
+    let isMounted = true;
+
     const unsubscribeAuth = onAuthStateChanged(auth, user => {
-      if (!user) return;
+      // Clean up existing listener before creating a new one
+      if (unsubscribeProjects) {
+        unsubscribeProjects();
+        unsubscribeProjects = undefined;
+      }
+
+      if (!user || !isMounted) {
+        setProjects([]);
+        return;
+      }
 
       const q = query(collection(db, 'users', user.uid, 'projects'));
-      const unsubscribeProjects = onSnapshot(q, snapshot => {
-        const fetchedProjects: ProjectType[] = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as ProjectType[];
-        setProjects(fetchedProjects);
-      });
-
-      // Cleanup Firestore listener when auth state changes or component unmounts
-      return () => unsubscribeProjects();
+      unsubscribeProjects = onSnapshot(
+        q,
+        snapshot => {
+          if (isMounted) {
+            const fetchedProjects: ProjectType[] = snapshot.docs.map(doc => ({
+              id: doc.id,
+              ...doc.data(),
+            })) as ProjectType[];
+            setProjects(fetchedProjects);
+          }
+        },
+        error => {
+          // Handle permission errors gracefully
+          if (error.code === 'permission-denied') {
+            console.log('Permission denied - user likely signed out');
+            if (isMounted) {
+              setProjects([]);
+            }
+          } else {
+            console.error('Firestore listener error:', error);
+          }
+        },
+      );
     });
 
     // Cleanup auth listener
-    return () => unsubscribeAuth();
+    return () => {
+      isMounted = false;
+      unsubscribeAuth();
+      if (unsubscribeProjects) {
+        unsubscribeProjects();
+      }
+    };
   }, []);
 
   const toggleComplete = async (project: ProjectType) => {

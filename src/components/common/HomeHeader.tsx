@@ -33,28 +33,40 @@ export default function DashboardHeader() {
 
   const handleLogout = async () => {
     try {
-      await signOut(auth);
+      // Clear the auth token cookie first
       document.cookie = 'authToken=; path=/; max-age=0';
-      router.push('/');
+
+      // Sign out from Firebase
+      await signOut(auth);
+
+      // Small delay to ensure cleanup completes
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Navigate to login page
+      router.push('/auth/login');
     } catch (error) {
       console.error('Error logging out:', error);
+      // Even if there's an error, try to navigate to login
+      router.push('/auth/login');
     }
   };
   return (
     <header className="flex items-center justify-between px-6 py-4 shadow-sm bg-white">
-      <Sheet open={open} onOpenChange={setOpen} >
+      <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger className="md:hidden" asChild>
           <Button variant="ghost" size="icon">
             ☰
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className='pt-4'>
-          <AddedProjects onProjectSelect={()=>setOpen(false)}/>
-            </SheetContent>
+        <SheetContent side="left" className="pt-4">
+          <AddedProjects onProjectSelect={() => setOpen(false)} />
+        </SheetContent>
       </Sheet>
 
       <div>
-        <h1 className="text-xl font-bold truncate max-w-[150px] sm:max-w-none">Hello {displayName}</h1>
+        <h1 className="text-xl font-bold truncate max-w-[150px] sm:max-w-none">
+          Hello {displayName}
+        </h1>
       </div>
 
       <div className="flex items-center space-x-4">
@@ -65,7 +77,7 @@ export default function DashboardHeader() {
               <AvatarFallback>U</AvatarFallback>
             </Avatar>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className='mix-w-[150px]'>
+          <DropdownMenuContent align="end" className="mix-w-[150px]">
             <DropdownMenuItem className="cursor-pointer">
               Profile
             </DropdownMenuItem>

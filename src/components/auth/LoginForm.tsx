@@ -3,7 +3,6 @@
 import {useState} from 'react';
 import {useRouter} from 'next/navigation';
 import {Label} from '@/components/ui/Label';
-import {TextLink} from '../ui/TextLink';
 import {Button} from '../ui/button';
 import {Input} from '../ui/input';
 import {signInUser} from '../../api/AuthServices';
@@ -11,6 +10,7 @@ import {signInWithGoogle} from '@/api/GoogleSignIn';
 import {FcGoogle} from 'react-icons/fc';
 import {FaFacebookF} from 'react-icons/fa';
 import {signInWithFacebook} from '@/api/FacebookSignIn';
+import Link from 'next/link';
 export function LoginForm() {
   const router = useRouter();
 
@@ -23,7 +23,8 @@ export function LoginForm() {
     setIsLoading(true);
     try {
       const user = await signInWithGoogle();
-      console.log('Logged In', user);
+      const token = await user.getIdToken();
+      document.cookie = `authToken=${token}; path=/; max-age=86400`;
       router.push('/dashboard/projects');
     } catch (error) {
       console.error('Google sign in failed', error);
@@ -36,7 +37,9 @@ export function LoginForm() {
     setIsLoading(true);
     try {
       const user = await signInWithFacebook();
-      console.log('Logged In', user);
+      const token = await user.getIdToken();
+      document.cookie = `authToken=${token}; path=/; max-age=86400`;
+
       router.push('/dashboard/projects');
     } catch (error) {
       console.error('Google sign in failed', error);
@@ -52,8 +55,8 @@ export function LoginForm() {
 
     try {
       const user = await signInUser(email, password);
-      console.log('User logged in:', user);
-      document.cookie = `authToken=true; path=/; max-age=86400`;
+      const token = await user.user?.getIdToken();
+      document.cookie = `authToken=${token}; path=/; max-age=86400`;
       router.push('/dashboard/projects');
     } catch (err: unknown) {
       let message = 'Something went wrong. Please try again.';
@@ -147,7 +150,11 @@ export function LoginForm() {
         </Button>
       </div>
       <div className="text-center">
-        <TextLink label="Don't have an account?" href="/auth/register" />
+        <Link
+          href={'/auth/register'}
+          className="text-sm text-black hover:underline cursor-pointer">
+          Don&apos;t have an account?
+        </Link>
       </div>
     </form>
   );

@@ -2,7 +2,6 @@
 
 import {useState} from 'react';
 import {Label} from '@/components/ui/Label';
-import {TextLink} from '../ui/TextLink';
 import {Button} from '../ui/button';
 import {Input} from '../ui/input';
 import {createUser} from '../../api/AuthServices';
@@ -114,7 +113,11 @@ export function RegisterForm() {
       </div>
 
       <div className="text-center">
-        <TextLink label="Already have an account?" href="/auth/login" />
+        <div
+          onClick={() => router.back()}
+          className="text-sm text-black hover:underline cursor-pointer">
+          Already have an account?
+        </div>
       </div>
     </form>
   );
