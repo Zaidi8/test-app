@@ -64,7 +64,7 @@ export function RegisterForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-6 md:min-w-[25%] mx-auto p-4 bg-white rounded-xl shadow-md">
+      className="space-y-6 2xl:space-y-8 md:min-w-[25%] mx-auto p-4 bg-white rounded-xl shadow-md">
       <h2 className="text-xl font-semibold text-center">Create an Account</h2>
 
       <div className="space-y-2">
@@ -107,7 +107,10 @@ export function RegisterForm() {
       )}
 
       <div className="text-center">
-        <Button type="submit" className="w-full" disabled={isLoading}>
+        <Button
+          type="submit"
+          className="w-full cursor-pointer"
+          disabled={isLoading}>
           {isLoading ? 'Registering...' : 'Register'}
         </Button>
       </div>
