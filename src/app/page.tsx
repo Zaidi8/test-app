@@ -1,10 +1,7 @@
-// src/app/login/page.tsx
-import {LoginForm} from '@/components/auth/LoginForm';
-
-export default function LoginPage() {
+export default function HomePage() {
   return (
     <div className="min-h-screen flex items-center justify-center">
-      <LoginForm />
+      <h1></h1>
     </div>
   );
 }

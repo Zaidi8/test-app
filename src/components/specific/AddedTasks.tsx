@@ -95,31 +95,59 @@ export default function AddedTasks() {
   };
 
   useEffect(() => {
-    let unsubscribe: () => void;
+    let unsubscribe: (() => void) | undefined;
+    let isMounted = true;
 
     const unsubscribeAuth = onAuthStateChanged(auth, user => {
-      if (user && projectId) {
+      // Clean up existing listener before creating a new one
+      if (unsubscribe) {
+        unsubscribe();
+        unsubscribe = undefined;
+      }
+
+      if (user && projectId && isMounted) {
         const q = query(
           collection(db, 'users', user.uid, 'projects', projectId, 'tasks'),
           orderBy('createdAt', 'desc'),
         );
 
-        unsubscribe = onSnapshot(q, snapshot => {
-          const fetchedTasks = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-          })) as TaskType[];
+        unsubscribe = onSnapshot(
+          q,
+          snapshot => {
+            if (isMounted) {
+              const fetchedTasks = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+              })) as TaskType[];
 
-          setTasks(fetchedTasks);
-        });
+              setTasks(fetchedTasks);
+            }
+          },
+          error => {
+            // Handle permission errors gracefully
+            if (error.code === 'permission-denied') {
+              console.log('Permission denied - user likely signed out');
+              if (isMounted) {
+                setTasks([]);
+              }
+            } else {
+              console.error('Firestore listener error:', error);
+            }
+          },
+        );
       } else {
-        setTasks([]);
+        if (isMounted) {
+          setTasks([]);
+        }
       }
     });
 
     return () => {
+      isMounted = false;
       unsubscribeAuth();
-      if (unsubscribe) unsubscribe();
+      if (unsubscribe) {
+        unsubscribe();
+      }
     };
   }, [projectId]);
 

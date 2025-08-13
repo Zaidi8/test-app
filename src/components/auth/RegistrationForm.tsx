@@ -2,7 +2,6 @@
 
 import {useState} from 'react';
 import {Label} from '@/components/ui/Label';
-import {TextLink} from '../ui/TextLink';
 import {Button} from '../ui/button';
 import {Input} from '../ui/input';
 import {createUser} from '../../api/AuthServices';
@@ -65,7 +64,7 @@ export function RegisterForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-6 max-w-sm mx-auto p-4 bg-white rounded-xl shadow-md">
+      className="space-y-6 2xl:space-y-8 md:min-w-[25%] mx-auto p-4 bg-white rounded-xl shadow-md">
       <h2 className="text-xl font-semibold text-center">Create an Account</h2>
 
       <div className="space-y-2">
@@ -108,13 +107,20 @@ export function RegisterForm() {
       )}
 
       <div className="text-center">
-        <Button type="submit" className="w-full" disabled={isLoading}>
+        <Button
+          type="submit"
+          className="w-full cursor-pointer"
+          disabled={isLoading}>
           {isLoading ? 'Registering...' : 'Register'}
         </Button>
       </div>
 
       <div className="text-center">
-        <TextLink label="Already have an account?" href="/auth/login" />
+        <div
+          onClick={() => router.back()}
+          className="text-sm text-black hover:underline cursor-pointer">
+          Already have an account?
+        </div>
       </div>
     </form>
   );
