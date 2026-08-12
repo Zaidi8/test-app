@@ -5,11 +5,11 @@ import {useRouter} from 'next/navigation';
 import {Label} from '@/components/ui/Label';
 import {Button} from '../ui/button';
 import {Input} from '../ui/input';
-import {signInUser} from '../../api/AuthServices';
-import {signInWithGoogle} from '@/api/GoogleSignIn';
+import {signInUser} from '@/services/AuthServices';
+import {signInWithGoogle} from '@/services/GoogleSignIn';
 import {FcGoogle} from 'react-icons/fc';
 import {FaFacebookF} from 'react-icons/fa';
-import {signInWithFacebook} from '@/api/FacebookSignIn';
+import {signInWithFacebook} from '@/services/FacebookSignIn';
 import Link from 'next/link';
 export function LoginForm() {
   const router = useRouter();

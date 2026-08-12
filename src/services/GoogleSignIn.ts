@@ -1,4 +1,4 @@
-// services/authService.ts
+// services/google.ts
 import { auth } from '../../firebaseConfig';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 

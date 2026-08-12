@@ -1,5 +1,5 @@
 'use client';
-import {useState, useEffect} from 'react';
+import {useState} from 'react';
 import {db} from '../../../firebaseConfig';
 import {
   addDoc,
@@ -30,9 +30,20 @@ export default function AddTask({
   editingTask,
   setEditingTask,
 }: AddTaskProps) {
-  const [taskTitle, setTaskTitle] = useState('');
+  const [taskTitle, setTaskTitle] = useState(editingTask?.title ?? '');
   const [loading, setLoading] = useState(false);
-  const [selectedTimes, setSelectedTimes] = useState<string[]>([]);
+  const [selectedTimes, setSelectedTimes] = useState<string[]>(() =>
+    editingTask ? editingTask.time.split(' - ') : [],
+  );
+
+  // Keep the form in sync when the editing target changes while mounted
+  // (render-time adjustment, per React docs — avoids setState-in-effect).
+  const [prevEditingTask, setPrevEditingTask] = useState(editingTask);
+  if (editingTask !== prevEditingTask) {
+    setPrevEditingTask(editingTask);
+    setTaskTitle(editingTask?.title ?? '');
+    setSelectedTimes(editingTask ? editingTask.time.split(' - ') : []);
+  }
 
   const timeSlots = Array.from(
     {length: 24},
@@ -63,7 +74,11 @@ export default function AddTask({
       toast.error('No project selected.');
       return;
     }
-    setLoading(true);
+
+    if (selectedTimes.length !== 2) {
+      toast.error('Please select a start and end time.');
+      return;
+    }
 
     const user = auth.currentUser;
     if (!user) {
@@ -72,11 +87,6 @@ export default function AddTask({
     }
 
     setLoading(true);
-    if (selectedTimes.length !== 2) {
-      toast.error('Please select a start and end time.');
-      return;
-    }
-
     const [start, end] = selectedTimes.sort();
     const timeRange = `${start} - ${end}`;
 
@@ -121,14 +131,6 @@ export default function AddTask({
       setLoading(false);
     }
   };
-  useEffect(() => {
-    if (editingTask) {
-      setTaskTitle(editingTask.title);
-      const [start, end] = editingTask.time.split(' - ');
-      setSelectedTimes([start, end]);
-    }
-  }, [editingTask]);
-
   return (
     <div>
       <div className="my-5 space-y-4">

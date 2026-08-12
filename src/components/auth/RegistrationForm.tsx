@@ -4,7 +4,7 @@ import {useState} from 'react';
 import {Label} from '@/components/ui/Label';
 import {Button} from '../ui/button';
 import {Input} from '../ui/input';
-import {createUser} from '../../api/AuthServices';
+import {createUser} from '@/services/AuthServices';
 import {useRouter} from 'next/navigation';
 
 export function RegisterForm() {

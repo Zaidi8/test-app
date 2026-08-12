@@ -3,14 +3,14 @@ import { auth } from "../../firebaseConfig";
 
 
 export const createUser = async(
-  fullname:string,  
+  fullname:string,
   email:string,
   password:string
 ) => {
     try{
 
         const userCreddential = await createUserWithEmailAndPassword(auth, email, password)
-    
+
         await updateProfile(userCreddential.user, {
           displayName:fullname,
         })

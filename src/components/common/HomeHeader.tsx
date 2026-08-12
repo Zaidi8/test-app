@@ -14,7 +14,6 @@ import {Button} from '@/components/ui/button';
 import {auth} from '../../../firebaseConfig';
 import {useRouter} from 'next/navigation';
 import AddedProjects from '../specific/AddedProjects';
-import {FeatureEnabled} from '../FeatureEnabled';
 
 export default function DashboardHeader() {
   const router = useRouter();
@@ -64,17 +63,9 @@ export default function DashboardHeader() {
         </SheetContent>
       </Sheet>
       <div>
-        <FeatureEnabled
-          featureFlag="MULTIPLE_ALLOWANCES"
-          fallback={
-            <h1 className="text-xl font-bold truncate max-w-[150px] sm:max-w-none">
-              Hello! Welcome to Prioritree.
-            </h1>
-          }>
-          <h1 className="text-xl font-bold truncate max-w-[150px] sm:max-w-none">
-            Hello {displayName}
-          </h1>
-        </FeatureEnabled>
+        <h1 className="text-xl font-bold truncate max-w-[150px] sm:max-w-none">
+          {displayName ? `Hello ${displayName}` : 'Welcome to Prioritree'}
+        </h1>
       </div>
 
       <div className="flex items-center space-x-4">

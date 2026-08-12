@@ -1,5 +1,4 @@
 'use client';
-import {useEffect} from 'react';
 import {Button} from '../ui/button';
 import {
   Dialog,
@@ -23,18 +22,25 @@ import {
 } from 'firebase/firestore';
 
 export default function AddProject({
-  onProjectAdded,
   editingProject,
   setEditingProject,
 }: {
-  onProjectAdded: () => void;
   editingProject: ProjectType | null;
   setEditingProject: React.Dispatch<React.SetStateAction<ProjectType | null>>;
 }) {
-  const [projectName, setProjectName] = useState('');
+  const [projectName, setProjectName] = useState(editingProject?.title ?? '');
   const [open, setOpen] = useState(false);
 
   const [loading, setLoading] = useState(false);
+
+  // Keep the form in sync when the target project changes (render-time adjustment,
+  // per React docs — avoids setState-in-effect).
+  const [prevEditingProject, setPrevEditingProject] = useState(editingProject);
+  if (editingProject !== prevEditingProject) {
+    setPrevEditingProject(editingProject);
+    setProjectName(editingProject?.title ?? '');
+    setOpen(Boolean(editingProject));
+  }
 
   const handleSubmitProject = async () => {
     if (!projectName.trim()) return;
@@ -79,7 +85,6 @@ export default function AddProject({
       setProjectName('');
       setEditingProject(null); // Reset editing
       setOpen(false);
-      onProjectAdded();
     } catch (error) {
       console.error('Error adding/updating project:', error);
       toast.error('Failed to add/update project');
@@ -93,13 +98,6 @@ export default function AddProject({
     setProjectName('');
     setEditingProject(null);
   };
-
-  useEffect(() => {
-    if (editingProject) {
-      setProjectName(editingProject.title);
-      setOpen(true); // Auto open modal when editing
-    }
-  }, [editingProject]);
 
   return (
     <Dialog

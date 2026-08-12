@@ -1,6 +1,6 @@
-// authService.ts or inside a handler
+// services/facebook.ts
 import { FacebookAuthProvider, signInWithPopup } from 'firebase/auth';
-import { auth } from '../../firebaseConfig'; // Adjust path as needed
+import { auth } from '../../firebaseConfig';
 
 export const signInWithFacebook = async () => {
   const provider = new FacebookAuthProvider();

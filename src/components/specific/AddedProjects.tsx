@@ -208,7 +208,7 @@ export default function AddedProjects({onProjectSelect}: AddedProjectsProps) {
                         className="cursor-pointer"
                         onClick={e => {
                           e.stopPropagation();
-                          deleteProject(project.id!, project.userId);
+                          deleteProject(project.id, project.userId);
                         }}>
                         Delete
                       </DropdownMenuItem>
@@ -222,7 +222,6 @@ export default function AddedProjects({onProjectSelect}: AddedProjectsProps) {
         <AddProject
           editingProject={editingProject}
           setEditingProject={setEditingProject}
-          onProjectAdded={() => {}}
         />
       </div>
     </div>
