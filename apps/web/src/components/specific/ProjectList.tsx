@@ -1,10 +1,10 @@
 'use client';
 
 import {useState} from 'react';
-import {ProjectType} from '@/types/project';
+import {Project} from '@prioritree/shared';
 import {Button} from '../ui/button';
 import {toast} from 'sonner';
-import AddProject from './AddProjects';
+import ProjectForm from './ProjectForm';
 import {MoreVertical, CheckCircle, Circle} from 'lucide-react';
 import {
   DropdownMenu,
@@ -13,20 +13,20 @@ import {
   DropdownMenuItem,
 } from '../ui/dropdown-menu';
 import {useParams, useRouter} from 'next/navigation';
+import {useProjects, useUpdateProject, useDeleteProject} from '@/services/projects';
 
-interface AddedProjectsProps {
+interface ProjectListProps {
+  workspaceId: string;
   onProjectSelect?: () => void;
 }
 
-export default function AddedProjects({onProjectSelect}: AddedProjectsProps) {
-  // TODO(T5): load projects via the projects API (TanStack Query). Until the
-  // Mongo data layer lands the list is intentionally empty.
-  const [projects] = useState<ProjectType[]>([]);
-  const [editingProject, setEditingProject] = useState<ProjectType | null>(
-    null,
-  );
+export default function ProjectList({workspaceId, onProjectSelect}: ProjectListProps) {
+  const {data: projects = []} = useProjects(workspaceId);
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
   const params = useParams();
   const router = useRouter();
+  const updateProject = useUpdateProject(workspaceId);
+  const deleteProject = useDeleteProject(workspaceId);
 
   const selectedProjectId = params?.projectId as string | undefined;
   const setSelectedProjectId = (id: string) => {
@@ -34,8 +34,26 @@ export default function AddedProjects({onProjectSelect}: AddedProjectsProps) {
     if (onProjectSelect) onProjectSelect();
   };
 
-  const notifyPending = () =>
-    toast.info('Project changes land in T5 (data layer migration).');
+  const handleToggleComplete = async (project: Project) => {
+    try {
+      await updateProject.mutateAsync({
+        projectId: project.id,
+        data: {status: project.status === 'active' ? 'completed' : 'active'},
+      });
+      toast.success('Project updated');
+    } catch {
+      toast.error('Failed to update project');
+    }
+  };
+
+  const handleDelete = async (project: Project) => {
+    try {
+      await deleteProject.mutateAsync(project.id);
+      toast.success('Project deleted');
+    } catch {
+      toast.error('Failed to delete project');
+    }
+  };
 
   return (
     <div className="mx-auto w-full sm:min-w-[250px] max-w-full lg:max-w-md xl:max-w-lg 2xl:max-w-xl rounded-lg h-full bg-white">
@@ -51,7 +69,7 @@ export default function AddedProjects({onProjectSelect}: AddedProjectsProps) {
               <div className="flex text-sm lg:text-base xl:text-lg mx-4 flex-row items-center justify-between w-full">
                 <div className="flex items-center justify-between ">
                   <span className="mr-2">
-                    {project.isComplete ? (
+                    {project.status === 'completed' ? (
                       <CheckCircle size={18} color="green" />
                     ) : (
                       <Circle size={18} color="red" />
@@ -60,7 +78,7 @@ export default function AddedProjects({onProjectSelect}: AddedProjectsProps) {
                   <span
                     className={`truncate
                       ${
-                        project.isComplete
+                        project.status === 'completed'
                           ? 'line-through text-muted-foreground'
                           : ''
                       } max-w-[140px] sm:max-w-[200px] md:max-w-[250px] lg:max-w-[300px] xl:max-w-[400px]`}>
@@ -91,9 +109,9 @@ export default function AddedProjects({onProjectSelect}: AddedProjectsProps) {
                         className="cursor-pointer"
                         onClick={e => {
                           e.stopPropagation();
-                          notifyPending();
+                          handleToggleComplete(project);
                         }}>
-                        {project.isComplete
+                        {project.status === 'completed'
                           ? 'Mark Incomplete'
                           : 'Mark Complete'}
                       </DropdownMenuItem>
@@ -101,7 +119,7 @@ export default function AddedProjects({onProjectSelect}: AddedProjectsProps) {
                         className="cursor-pointer"
                         onClick={e => {
                           e.stopPropagation();
-                          notifyPending();
+                          handleDelete(project);
                         }}>
                         Delete
                       </DropdownMenuItem>
@@ -112,7 +130,8 @@ export default function AddedProjects({onProjectSelect}: AddedProjectsProps) {
             </div>
           ))}
         </div>
-        <AddProject
+        <ProjectForm
+          workspaceId={workspaceId}
           editingProject={editingProject}
           setEditingProject={setEditingProject}
         />

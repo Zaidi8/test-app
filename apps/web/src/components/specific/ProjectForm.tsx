@@ -11,22 +11,24 @@ import {
 import {Input} from '../ui/input';
 import {useState} from 'react';
 import {toast} from 'sonner';
-import {ProjectType} from '@/types/project';
-import {useAuth} from '@/lib/auth-provider';
+import {Project} from '@prioritree/shared';
+import {useCreateProject, useUpdateProject} from '@/services/projects';
 
-export default function AddProject({
+export default function ProjectForm({
+  workspaceId,
   editingProject,
   setEditingProject,
 }: {
-  editingProject: ProjectType | null;
-  setEditingProject: React.Dispatch<React.SetStateAction<ProjectType | null>>;
+  workspaceId: string;
+  editingProject: Project | null;
+  setEditingProject: (project: Project | null) => void;
 }) {
-  const {user} = useAuth();
   const [projectName, setProjectName] = useState(editingProject?.title ?? '');
   const [open, setOpen] = useState(false);
 
-  // Keep the form in sync when the target project changes (render-time adjustment,
-  // per React docs — avoids setState-in-effect).
+  const createProject = useCreateProject(workspaceId);
+  const updateProject = useUpdateProject(workspaceId);
+
   const [prevEditingProject, setPrevEditingProject] = useState(editingProject);
   if (editingProject !== prevEditingProject) {
     setPrevEditingProject(editingProject);
@@ -34,19 +36,28 @@ export default function AddProject({
     setOpen(Boolean(editingProject));
   }
 
-  const handleSubmitProject = () => {
-    if (!projectName.trim()) return;
-    if (!user) {
-      toast.error('User not logged in');
-      return;
-    }
+  const isLoading = createProject.isPending || updateProject.isPending;
 
-    // TODO(T5): persist via the projects API. The Mongo data layer is not wired
-    // up yet, so creating/updating projects is intentionally a no-op for now.
-    toast.info('Saving projects lands in T5 (data layer migration).');
-    setProjectName('');
-    setEditingProject(null);
-    setOpen(false);
+  const handleSubmitProject = async () => {
+    if (!projectName.trim()) return;
+
+    try {
+      if (editingProject) {
+        await updateProject.mutateAsync({
+          projectId: editingProject.id,
+          data: {title: projectName.trim()},
+        });
+        toast.success('Project updated');
+      } else {
+        await createProject.mutateAsync({title: projectName.trim()});
+        toast.success('Project created');
+      }
+      setProjectName('');
+      setEditingProject(null);
+      setOpen(false);
+    } catch {
+      toast.error('Failed to save project');
+    }
   };
 
   const handleCloseDialog = () => {
@@ -59,9 +70,7 @@ export default function AddProject({
     <Dialog
       open={open}
       onOpenChange={isOpen => {
-        if (!isOpen) {
-          handleCloseDialog();
-        }
+        if (!isOpen) handleCloseDialog();
         setOpen(isOpen);
       }}>
       <DialogTrigger asChild>
@@ -85,8 +94,8 @@ export default function AddProject({
           <Button
             className="cursor-pointer"
             onClick={handleSubmitProject}
-            disabled={!projectName.trim()}>
-            {editingProject ? 'Update' : 'Create'}
+            disabled={!projectName.trim() || isLoading}>
+            {isLoading ? 'Saving...' : editingProject ? 'Update' : 'Create'}
           </Button>
         </DialogFooter>
       </DialogContent>

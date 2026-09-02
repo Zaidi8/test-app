@@ -1,25 +1,27 @@
 'use client';
 import {Button} from '../ui/button';
 import {X} from 'lucide-react';
-import AddTask from './AddTasks';
+import TaskForm from './TaskForm';
 import {useClickOutside} from '@/hooks/useClickOutside';
-import {TaskType} from '@/types/project';
+import {Task} from '@prioritree/shared';
 
-interface AddTaskPanelProps {
+interface TaskPanelProps {
+  workspaceId: string;
   projectId: string;
   showPanel: boolean;
   setShowPanel: (value: boolean) => void;
-  editingTask: TaskType | null;
-  setEditingTask: (task: TaskType | null) => void;
+  editingTask: Task | null;
+  setEditingTask: (task: Task | null) => void;
 }
 
-export default function AddTaskPanel({
+export default function TaskPanel({
+  workspaceId,
   projectId,
   showPanel,
   setShowPanel,
   editingTask,
   setEditingTask,
-}: AddTaskPanelProps) {
+}: TaskPanelProps) {
   const ref = useClickOutside(() => {
     setShowPanel(false);
     setEditingTask(null);
@@ -48,7 +50,8 @@ export default function AddTaskPanel({
           </Button>
         </div>
         <div className="w-full px-4 sm:px-6 md:px-8">
-          <AddTask
+          <TaskForm
+            workspaceId={workspaceId}
             projectId={projectId}
             editingTask={editingTask}
             setEditingTask={setEditingTask}

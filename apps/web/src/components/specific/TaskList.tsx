@@ -12,20 +12,46 @@ import {
   DropdownMenuItem,
 } from '../ui/dropdown-menu';
 import {toast} from 'sonner';
-import {TaskType} from '@/types/project';
-import AddTaskPanel from './AddTaskPanel';
-import {useParams} from 'next/navigation';
+import {Task} from '@prioritree/shared';
+import TaskPanel from './TaskPanel';
+import {
+  useTasks,
+  useUpdateTaskStatus,
+  useDeleteTask,
+} from '@/services/tasks';
 
-export default function AddedTasks() {
-  const {projectId} = useParams() as {projectId: string};
-  // TODO(T5): load tasks via the tasks API (TanStack Query). Until the Mongo
-  // data layer lands the list is intentionally empty.
-  const [tasks] = useState<TaskType[]>([]);
+interface TaskListProps {
+  workspaceId: string;
+  projectId: string;
+}
+
+export default function TaskList({workspaceId, projectId}: TaskListProps) {
+  const {data: tasks = []} = useTasks(workspaceId, projectId);
   const [showPanel, setShowPanel] = useState(false);
-  const [editingTask, setEditingTask] = useState<TaskType | null>(null);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
 
-  const notifyPending = () =>
-    toast.info('Task changes land in T5 (data layer migration).');
+  const updateStatus = useUpdateTaskStatus(workspaceId, projectId);
+  const deleteTask = useDeleteTask(workspaceId, projectId);
+
+  const handleToggleComplete = async (task: Task) => {
+    try {
+      await updateStatus.mutateAsync({
+        taskId: task.id,
+        status: task.status === 'done' ? 'todo' : 'done',
+      });
+    } catch {
+      toast.error('Failed to update task');
+    }
+  };
+
+  const handleDelete = async (task: Task) => {
+    try {
+      await deleteTask.mutateAsync(task.id);
+      toast.success('Task deleted');
+    } catch {
+      toast.error('Failed to delete task');
+    }
+  };
 
   return (
     <div className="h-full relative">
@@ -41,13 +67,13 @@ export default function AddedTasks() {
             className="m-1 p-2 flex flex-col sm:flex-row  gap-2 justify-between">
             <div className="flex items-center mx-2 gap-2 sm:w-[60%]">
               <Checkbox
-                checked={task.isComplete}
-                onCheckedChange={() => notifyPending()}
+                checked={task.status === 'done'}
+                onCheckedChange={() => handleToggleComplete(task)}
                 className="cursor-pointer"
               />
               <p
                 className={
-                  task.isComplete
+                  task.status === 'done'
                     ? 'line-through text-muted-foreground truncate'
                     : 'truncate'
                 }>
@@ -58,7 +84,9 @@ export default function AddedTasks() {
               <div className="flex flex-row mx-2 items-center px-2 rounded-sm bg-gray-200">
                 <Clock size={16} color="#4a5565" />
                 <p className="font-medium text-xs whitespace-nowrap max-w-fit text-center text-gray-600 mx-1">
-                  {task.time}
+                  {task.scheduledStart && task.scheduledEnd
+                    ? `${new Date(task.scheduledStart).toTimeString().slice(0, 5)} - ${new Date(task.scheduledEnd).toTimeString().slice(0, 5)}`
+                    : 'No time'}
                 </p>
               </div>
               <DropdownMenu>
@@ -81,12 +109,12 @@ export default function AddedTasks() {
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     className="cursor-pointer"
-                    onClick={() => notifyPending()}>
-                    {task.isComplete ? 'Mark Incomplete' : 'Mark Complete'}
+                    onClick={() => handleToggleComplete(task)}>
+                    {task.status === 'done' ? 'Mark Incomplete' : 'Mark Complete'}
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     className="cursor-pointer"
-                    onClick={() => notifyPending()}>
+                    onClick={() => handleDelete(task)}>
                     Delete
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -104,7 +132,8 @@ export default function AddedTasks() {
           className="fixed cursor-pointer bottom-6 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full w-[90%] sm:w-[80%] md:w-[60%] lg:w-[40%] xl:w-[30%] max-w-[430px] shadow-lg z-50">
           Create a new task
         </Button>
-        <AddTaskPanel
+        <TaskPanel
+          workspaceId={workspaceId}
           projectId={projectId}
           showPanel={showPanel}
           setShowPanel={setShowPanel}

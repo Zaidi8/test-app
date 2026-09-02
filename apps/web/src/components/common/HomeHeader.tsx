@@ -11,14 +11,17 @@ import {
 } from '@/components/ui/dropdown-menu';
 import {Button} from '@/components/ui/button';
 import {useRouter} from 'next/navigation';
-import AddedProjects from '../specific/AddedProjects';
+import ProjectList from '../specific/ProjectList';
 import {useAuth} from '@/lib/auth-provider';
+import {useWorkspaces} from '@/services/workspaces';
 
 export default function DashboardHeader() {
   const router = useRouter();
   const {user, logout} = useAuth();
   const [open, setOpen] = useState(false);
   const displayName = user?.name ?? '';
+  const {data: workspaces} = useWorkspaces();
+  const workspaceId = workspaces?.[0]?.id ?? '';
 
   const handleLogout = async () => {
     try {
@@ -36,7 +39,10 @@ export default function DashboardHeader() {
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="pt-4">
-          <AddedProjects onProjectSelect={() => setOpen(false)} />
+          <ProjectList
+            workspaceId={workspaceId}
+            onProjectSelect={() => setOpen(false)}
+          />
         </SheetContent>
       </Sheet>
       <div>

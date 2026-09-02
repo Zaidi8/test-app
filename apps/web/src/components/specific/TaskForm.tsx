@@ -3,38 +3,49 @@ import {useState} from 'react';
 import {toast} from 'sonner';
 import {Button} from '../ui/button';
 import {Textarea} from '../ui/textarea';
-import {useAuth} from '@/lib/auth-provider';
+import {useCreateTask, useUpdateTask} from '@/services/tasks';
+import {Task} from '@prioritree/shared';
 
-interface AddTaskProps {
+interface TaskFormProps {
+  workspaceId: string;
   projectId: string;
   onTaskAdded: () => void;
-  editingTask?: {
-    id: string;
-    title: string;
-    time: string;
-  } | null;
+  editingTask?: Task | null;
   setEditingTask: (task: null) => void;
 }
 
-export default function AddTask({
+export default function TaskForm({
+  workspaceId,
   projectId,
   onTaskAdded,
   editingTask,
   setEditingTask,
-}: AddTaskProps) {
-  const {user} = useAuth();
+}: TaskFormProps) {
   const [taskTitle, setTaskTitle] = useState(editingTask?.title ?? '');
   const [selectedTimes, setSelectedTimes] = useState<string[]>(() =>
-    editingTask ? editingTask.time.split(' - ') : [],
+    editingTask?.scheduledStart && editingTask?.scheduledEnd
+      ? [
+          new Date(editingTask.scheduledStart).toTimeString().slice(0, 5),
+          new Date(editingTask.scheduledEnd).toTimeString().slice(0, 5),
+        ]
+      : [],
   );
 
-  // Keep the form in sync when the editing target changes while mounted
-  // (render-time adjustment, per React docs — avoids setState-in-effect).
+  const createTask = useCreateTask(workspaceId, projectId);
+  const updateTask = useUpdateTask(workspaceId, projectId);
+
   const [prevEditingTask, setPrevEditingTask] = useState(editingTask);
   if (editingTask !== prevEditingTask) {
     setPrevEditingTask(editingTask);
     setTaskTitle(editingTask?.title ?? '');
-    setSelectedTimes(editingTask ? editingTask.time.split(' - ') : []);
+    setSelectedTimes(
+      editingTask?.scheduledStart && editingTask?.scheduledEnd
+        ? [
+            new Date(editingTask.scheduledStart).toTimeString().slice(0, 5),
+            new Date(editingTask.scheduledEnd).toTimeString().slice(0, 5),
+          ]
+        : [],
+    );
   }
 
   const timeSlots = Array.from(
@@ -57,7 +68,9 @@ export default function AddTask({
       ? timeSlots.slice(timeSlots.indexOf(start), timeSlots.indexOf(end) + 1)
       : [];
 
-  const handleAddTask = () => {
+  const isLoading = createTask.isPending || updateTask.isPending;
+
+  const handleAddTask = async () => {
     if (!taskTitle.trim()) {
       toast.error('Task title cannot be empty.');
       return;
@@ -70,18 +83,37 @@ export default function AddTask({
       toast.error('Please select a start and end time.');
       return;
     }
-    if (!user) {
-      toast.error('User not logged in.');
-      return;
-    }
 
-    // TODO(T5): persist via the tasks API. The Mongo data layer is not wired up
-    // yet, so adding/updating tasks is intentionally a no-op for now.
-    toast.info('Saving tasks lands in T5 (data layer migration).');
-    setTaskTitle('');
-    setEditingTask(null);
-    onTaskAdded();
+    const [sortedStart, sortedEnd] = selectedTimes.sort();
+    const today = new Date().toISOString().split('T')[0];
+    const scheduledStart = new Date(`${today}T${sortedStart}:00`).toISOString();
+    const scheduledEnd = new Date(`${today}T${sortedEnd}:00`).toISOString();
+
+    try {
+      if (editingTask) {
+        await updateTask.mutateAsync({
+          taskId: editingTask.id,
+          data: {title: taskTitle.trim(), scheduledStart, scheduledEnd},
+        });
+        toast.success('Task updated');
+      } else {
+        await createTask.mutateAsync({
+          title: taskTitle.trim(),
+          priority: 3,
+          tags: [],
+          scheduledStart,
+          scheduledEnd,
+        });
+        toast.success('Task created');
+      }
+      setTaskTitle('');
+      setEditingTask(null);
+      onTaskAdded();
+    } catch {
+      toast.error('Failed to save task');
+    }
   };
+
   return (
     <div>
       <div className="my-5 space-y-4">
@@ -116,8 +148,13 @@ export default function AddTask({
         <Button
           onClick={handleAddTask}
           className="rounded-4xl cursor-pointer w-full"
+          disabled={isLoading}
           color="#155dfc">
-          {editingTask ? 'Update Task' : 'Add Task'}
+          {isLoading
+            ? 'Saving...'
+            : editingTask
+            ? 'Update Task'
+            : 'Add Task'}
         </Button>
       </div>
     </div>

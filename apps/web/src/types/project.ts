@@ -1,9 +1,4 @@
-export interface ProjectType {
-id:string;
-title:string;
-isComplete: boolean;
-userId: string ;
-}
-export interface TaskType extends ProjectType{
-    time:string;
-}
+import type { Project, Task } from '@prioritree/shared';
+
+export type ProjectType = Project;
+export type TaskType = Task;

@@ -16,6 +16,11 @@ declare global {
   namespace Express {
     interface Request {
       user?: AuthenticatedUser;
+      workspaceMember?: {
+        role: string;
+        workspaceId: unknown;
+        userId: unknown;
+      };
     }
   }
 }
