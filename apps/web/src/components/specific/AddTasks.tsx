@@ -1,17 +1,9 @@
 'use client';
 import {useState} from 'react';
-import {db} from '../../../firebaseConfig';
-import {
-  addDoc,
-  collection,
-  serverTimestamp,
-  updateDoc,
-  doc,
-} from 'firebase/firestore';
 import {toast} from 'sonner';
 import {Button} from '../ui/button';
-import {auth} from '../../../firebaseConfig';
 import {Textarea} from '../ui/textarea';
+import {useAuth} from '@/lib/auth-provider';
 
 interface AddTaskProps {
   projectId: string;
@@ -30,8 +22,8 @@ export default function AddTask({
   editingTask,
   setEditingTask,
 }: AddTaskProps) {
+  const {user} = useAuth();
   const [taskTitle, setTaskTitle] = useState(editingTask?.title ?? '');
-  const [loading, setLoading] = useState(false);
   const [selectedTimes, setSelectedTimes] = useState<string[]>(() =>
     editingTask ? editingTask.time.split(' - ') : [],
   );
@@ -64,72 +56,31 @@ export default function AddTask({
     selectedTimes.length === 2
       ? timeSlots.slice(timeSlots.indexOf(start), timeSlots.indexOf(end) + 1)
       : [];
-  const handleAddTask = async () => {
+
+  const handleAddTask = () => {
     if (!taskTitle.trim()) {
       toast.error('Task title cannot be empty.');
       return;
     }
-
     if (!projectId) {
       toast.error('No project selected.');
       return;
     }
-
     if (selectedTimes.length !== 2) {
       toast.error('Please select a start and end time.');
       return;
     }
-
-    const user = auth.currentUser;
     if (!user) {
       toast.error('User not logged in.');
       return;
     }
 
-    setLoading(true);
-    const [start, end] = selectedTimes.sort();
-    const timeRange = `${start} - ${end}`;
-
-    try {
-      const taskData = {
-        title: taskTitle,
-        projectId,
-        createdAt: serverTimestamp(),
-        time: timeRange,
-        isComplete: false,
-      };
-      if (editingTask) {
-        const taskRef = doc(
-          db,
-          'users',
-          user.uid,
-          'projects',
-          projectId,
-          'tasks',
-          editingTask.id,
-        );
-        await updateDoc(taskRef, taskData);
-        toast.success('Task updated successfully!');
-        setEditingTask(null);
-      } else {
-        await addDoc(
-          collection(db, 'users', user.uid, 'projects', projectId, 'tasks'),
-          taskData,
-        );
-
-        const projectRef = doc(db, 'users', user.uid, 'projects', projectId);
-        await updateDoc(projectRef, {isComplete: false});
-
-        toast.success('Task added successfully!');
-      }
-      setTaskTitle('');
-      onTaskAdded();
-    } catch (error) {
-      console.error('Error adding task:', error);
-      toast.error('Failed to add task');
-    } finally {
-      setLoading(false);
-    }
+    // TODO(T5): persist via the tasks API. The Mongo data layer is not wired up
+    // yet, so adding/updating tasks is intentionally a no-op for now.
+    toast.info('Saving tasks lands in T5 (data layer migration).');
+    setTaskTitle('');
+    setEditingTask(null);
+    onTaskAdded();
   };
   return (
     <div>
@@ -165,15 +116,8 @@ export default function AddTask({
         <Button
           onClick={handleAddTask}
           className="rounded-4xl cursor-pointer w-full"
-          disabled={loading}
           color="#155dfc">
-          {loading
-            ? editingTask
-              ? 'Updating...'
-              : 'Adding...'
-            : editingTask
-            ? 'Update Task'
-            : 'Add Task'}
+          {editingTask ? 'Update Task' : 'Add Task'}
         </Button>
       </div>
     </div>

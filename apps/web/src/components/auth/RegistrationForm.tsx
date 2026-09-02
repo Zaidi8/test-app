@@ -1,14 +1,17 @@
 'use client';
 
 import {useState} from 'react';
+import {useRouter} from 'next/navigation';
+
 import {Label} from '@/components/ui/Label';
 import {Button} from '../ui/button';
 import {Input} from '../ui/input';
-import {createUser} from '@/services/AuthServices';
-import {useRouter} from 'next/navigation';
+import {useAuth} from '@/lib/auth-provider';
+import {ApiError} from '@/lib/api-client';
 
 export function RegisterForm() {
   const router = useRouter();
+  const {register} = useAuth();
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -22,40 +25,15 @@ export function RegisterForm() {
     setErrorMessage('');
 
     try {
-      const user = await createUser(fullName, email, password);
-      console.log('User registered:', user);
-      router.back();
-    } catch (err: unknown) {
-      let message = 'Something went wrong. Please try again.';
-
-      if (
-        typeof err === 'object' &&
-        err !== null &&
-        'code' in err &&
-        'message' in err
-      ) {
-        const code = (err as {code: string; message: string}).code;
-
-        switch (code) {
-          case 'auth/email-already-in-use':
-            message = 'This email is already in use.';
-            break;
-          case 'auth/invalid-email':
-            message = 'Please enter a valid email.';
-            break;
-          case 'auth/weak-password':
-            message = 'Password should be at least 6 characters.';
-            break;
-          case 'auth/network-request-failed':
-            message = 'Network request failed. Please try again.';
-            break;
-          default:
-            message = (err as {message: string}).message;
-            break;
-        }
-      }
-
-      setErrorMessage(message);
+      await register({name: fullName, email, password});
+      // Registration signs the user in (cookies set), so go straight to the app.
+      router.push('/dashboard/projects');
+    } catch (err) {
+      setErrorMessage(
+        err instanceof ApiError
+          ? err.message
+          : 'Something went wrong. Please try again.',
+      );
     } finally {
       setIsLoading(false);
     }
@@ -68,9 +46,9 @@ export function RegisterForm() {
       <h2 className="text-xl font-semibold text-center">Create an Account</h2>
 
       <div className="space-y-2">
-        <Label htmlFor="email">First & Last Name</Label>
+        <Label htmlFor="fullName">First & Last Name</Label>
         <Input
-          id="email"
+          id="fullName"
           placeholder="e.g John Doe"
           value={fullName}
           onChange={e => setFullName(e.target.value)}
@@ -95,7 +73,7 @@ export function RegisterForm() {
         <Input
           id="password"
           type="password"
-          placeholder="********"
+          placeholder="At least 8 characters"
           value={password}
           onChange={e => setPassword(e.target.value)}
           required

@@ -7,6 +7,7 @@ import helmet from "helmet";
 import { env } from "./config/env.js";
 import { connectToDatabase, disconnectFromDatabase } from "./db/mongoose.js";
 import apiRouter from "./routes/index.js";
+import { ApiError } from "./utils/ApiError.js";
 
 const app = express();
 
@@ -39,8 +40,21 @@ app.get("/health", (_req: Request, res: Response) => {
 // API v1 routes
 app.use("/api/v1", apiRouter);
 
-// Central error handler
-app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+// Unmatched routes → JSON 404
+app.use((_req: Request, res: Response) => {
+  res.status(404).json({ error: "Not found" });
+});
+
+// Central error handler — ApiError carries its own status; everything else is 500.
+app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
+  if (err instanceof ApiError) {
+    res.status(err.statusCode).json({
+      error: err.message,
+      ...(err.details ? { details: err.details } : {}),
+    });
+    return;
+  }
+
   console.error("Unhandled error:", err);
   res.status(500).json({ error: "Internal server error" });
 });

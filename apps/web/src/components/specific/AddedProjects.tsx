@@ -1,22 +1,10 @@
 'use client';
 
-import {useEffect, useState} from 'react';
-import {
-  collection,
-  query,
-  onSnapshot,
-  doc,
-  updateDoc,
-  deleteDoc,
-  getDocs,
-  writeBatch,
-} from 'firebase/firestore';
-import {db, auth} from '../../../firebaseConfig';
+import {useState} from 'react';
 import {ProjectType} from '@/types/project';
 import {Button} from '../ui/button';
 import {toast} from 'sonner';
 import AddProject from './AddProjects';
-import {onAuthStateChanged} from 'firebase/auth';
 import {MoreVertical, CheckCircle, Circle} from 'lucide-react';
 import {
   DropdownMenu,
@@ -31,7 +19,9 @@ interface AddedProjectsProps {
 }
 
 export default function AddedProjects({onProjectSelect}: AddedProjectsProps) {
-  const [projects, setProjects] = useState<ProjectType[]>([]);
+  // TODO(T5): load projects via the projects API (TanStack Query). Until the
+  // Mongo data layer lands the list is intentionally empty.
+  const [projects] = useState<ProjectType[]>([]);
   const [editingProject, setEditingProject] = useState<ProjectType | null>(
     null,
   );
@@ -44,105 +34,8 @@ export default function AddedProjects({onProjectSelect}: AddedProjectsProps) {
     if (onProjectSelect) onProjectSelect();
   };
 
-  const editProject = (project: ProjectType) => {
-    setEditingProject(project);
-  };
-
-  useEffect(() => {
-    let unsubscribeProjects: (() => void) | undefined;
-    let isMounted = true;
-
-    const unsubscribeAuth = onAuthStateChanged(auth, user => {
-      // Clean up existing listener before creating a new one
-      if (unsubscribeProjects) {
-        unsubscribeProjects();
-        unsubscribeProjects = undefined;
-      }
-
-      if (!user || !isMounted) {
-        setProjects([]);
-        return;
-      }
-
-      const q = query(collection(db, 'users', user.uid, 'projects'));
-      unsubscribeProjects = onSnapshot(
-        q,
-        snapshot => {
-          if (isMounted) {
-            const fetchedProjects: ProjectType[] = snapshot.docs.map(doc => ({
-              id: doc.id,
-              ...doc.data(),
-            })) as ProjectType[];
-            setProjects(fetchedProjects);
-          }
-        },
-        error => {
-          // Handle permission errors gracefully
-          if (error.code === 'permission-denied') {
-            console.log('Permission denied - user likely signed out');
-            if (isMounted) {
-              setProjects([]);
-            }
-          } else {
-            console.error('Firestore listener error:', error);
-          }
-        },
-      );
-    });
-
-    // Cleanup auth listener
-    return () => {
-      isMounted = false;
-      unsubscribeAuth();
-      if (unsubscribeProjects) {
-        unsubscribeProjects();
-      }
-    };
-  }, []);
-
-  const toggleComplete = async (project: ProjectType) => {
-    if (!project.id) return;
-    try {
-      await updateDoc(
-        doc(db, 'users', project.userId, 'projects', project.id),
-        {
-          isComplete: !project.isComplete,
-        },
-      );
-
-      if (!project.isComplete) {
-        const taskRef = collection(
-          db,
-          'users',
-          project.userId,
-          'projects',
-          project.id,
-          'tasks',
-        );
-        const taskSnapshot = await getDocs(taskRef);
-
-        const batch = writeBatch(db);
-        taskSnapshot.forEach(task => {
-          batch.update(task.ref, {isComplete: true});
-        });
-        await batch.commit();
-      }
-      toast.success('Status updated');
-    } catch (error) {
-      console.error('Failed to update status', error);
-      toast.error('Could not update project');
-    }
-  };
-
-  const deleteProject = async (id: string, userId: string) => {
-    try {
-      await deleteDoc(doc(db, 'users', userId, 'projects', id));
-      toast.success('Project deleted');
-    } catch (error) {
-      console.error('Failed to delete project', error);
-      toast.error('Could not delete project');
-    }
-  };
+  const notifyPending = () =>
+    toast.info('Project changes land in T5 (data layer migration).');
 
   return (
     <div className="mx-auto w-full sm:min-w-[250px] max-w-full lg:max-w-md xl:max-w-lg 2xl:max-w-xl rounded-lg h-full bg-white">
@@ -165,7 +58,7 @@ export default function AddedProjects({onProjectSelect}: AddedProjectsProps) {
                     )}
                   </span>
                   <span
-                    className={`truncate 
+                    className={`truncate
                       ${
                         project.isComplete
                           ? 'line-through text-muted-foreground'
@@ -190,7 +83,7 @@ export default function AddedProjects({onProjectSelect}: AddedProjectsProps) {
                         className="cursor-pointer"
                         onClick={e => {
                           e.stopPropagation();
-                          editProject(project);
+                          setEditingProject(project);
                         }}>
                         Edit
                       </DropdownMenuItem>
@@ -198,7 +91,7 @@ export default function AddedProjects({onProjectSelect}: AddedProjectsProps) {
                         className="cursor-pointer"
                         onClick={e => {
                           e.stopPropagation();
-                          toggleComplete(project);
+                          notifyPending();
                         }}>
                         {project.isComplete
                           ? 'Mark Incomplete'
@@ -208,7 +101,7 @@ export default function AddedProjects({onProjectSelect}: AddedProjectsProps) {
                         className="cursor-pointer"
                         onClick={e => {
                           e.stopPropagation();
-                          deleteProject(project.id, project.userId);
+                          notifyPending();
                         }}>
                         Delete
                       </DropdownMenuItem>

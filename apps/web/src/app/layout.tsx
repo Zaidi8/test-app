@@ -3,6 +3,7 @@ import {ReactNode} from 'react';
 import {Inter} from 'next/font/google';
 import {Toaster} from 'sonner';
 import { SpeedInsights } from '@vercel/speed-insights/next';
+import {AuthProvider} from '@/lib/auth-provider';
 
 const inter = Inter({subsets: ['latin']});
 
@@ -16,8 +17,10 @@ export default function RootLayout({children}: {children: ReactNode}) {
     <html lang="en">
       <head />
       <body className={inter.className}>
-        <header></header>
-        <main>{children}</main>
+        <AuthProvider>
+          <header></header>
+          <main>{children}</main>
+        </AuthProvider>
         <SpeedInsights/>
         <Toaster richColors position="top-right" />
       </body>

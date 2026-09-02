@@ -2,50 +2,27 @@
 
 import {useState} from 'react';
 import {useRouter} from 'next/navigation';
+import Link from 'next/link';
+import {FcGoogle} from 'react-icons/fc';
+
 import {Label} from '@/components/ui/Label';
 import {Button} from '../ui/button';
 import {Input} from '../ui/input';
-import {signInUser} from '@/services/AuthServices';
-import {signInWithGoogle} from '@/services/GoogleSignIn';
-import {FcGoogle} from 'react-icons/fc';
-import {FaFacebookF} from 'react-icons/fa';
-import {signInWithFacebook} from '@/services/FacebookSignIn';
-import Link from 'next/link';
+import {useAuth} from '@/lib/auth-provider';
+import {ApiError, apiUrl} from '@/lib/api-client';
+
 export function LoginForm() {
   const router = useRouter();
+  const {login} = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleGoogleSignIn = async () => {
-    setIsLoading(true);
-    try {
-      const user = await signInWithGoogle();
-      const token = await user.getIdToken();
-      document.cookie = `authToken=${token}; path=/; max-age=86400`;
-      router.push('/dashboard/projects');
-    } catch (error) {
-      console.error('Google sign in failed', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleFacebookSignIn = async () => {
-    setIsLoading(true);
-    try {
-      const user = await signInWithFacebook();
-      const token = await user.getIdToken();
-      document.cookie = `authToken=${token}; path=/; max-age=86400`;
-
-      router.push('/dashboard/projects');
-    } catch (error) {
-      console.error('Google sign in failed', error);
-    } finally {
-      setIsLoading(false);
-    }
+  const handleGoogleSignIn = () => {
+    // Full-page navigation to the API, which redirects to Google's consent screen.
+    window.location.href = apiUrl('/auth/google');
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -54,44 +31,14 @@ export function LoginForm() {
     setErrorMessage('');
 
     try {
-      const user = await signInUser(email, password);
-      const token = await user.user?.getIdToken();
-      document.cookie = `authToken=${token}; path=/; max-age=86400`;
+      await login({email, password});
       router.push('/dashboard/projects');
-    } catch (err: unknown) {
-      let message = 'Something went wrong. Please try again.';
-
-      if (
-        typeof err === 'object' &&
-        err !== null &&
-        'code' in err &&
-        'message' in err
-      ) {
-        const code = (err as {code: string; message: string}).code;
-
-        switch (code) {
-          case 'auth/invalid-email':
-            message = 'Please enter a valid email.';
-            break;
-          case 'auth/invalid-credential':
-            message = 'The email and password you entered is not correct';
-            break;
-          case 'auth/user-not-found':
-            message = 'No account found with this email.';
-            break;
-          case 'auth/wrong-password':
-            message = 'Incorrect password.';
-            break;
-          case 'auth/network-request-failed':
-            message = 'Network error. Please try again.';
-            break;
-          default:
-            message = (err as {message: string}).message;
-            break;
-        }
-      }
-
-      setErrorMessage(message);
+    } catch (err) {
+      setErrorMessage(
+        err instanceof ApiError
+          ? err.message
+          : 'Something went wrong. Please try again.',
+      );
     } finally {
       setIsLoading(false);
     }
@@ -137,17 +84,12 @@ export function LoginForm() {
         </Button>
       </div>
       <div className="text-center">
-        <Button onClick={handleGoogleSignIn} className="w-full cursor-pointer">
+        <Button
+          type="button"
+          onClick={handleGoogleSignIn}
+          className="w-full cursor-pointer">
           Continue With Google
           <FcGoogle className="h-5 w-5" />
-        </Button>
-      </div>
-      <div className="text-center">
-        <Button
-          onClick={handleFacebookSignIn}
-          className=" bg-blue-600 w-full text-white hover:bg-blue-700 cursor-pointer">
-          <FaFacebookF className="w-5 h-5" />
-          Sign in with Facebook
         </Button>
       </div>
       <div className="text-center">

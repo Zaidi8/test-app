@@ -15,7 +15,18 @@ const envSchema = z.object({
   ACCESS_TOKEN_TTL: z.string().default("15m"),
   REFRESH_TOKEN_TTL_DAYS: z.coerce.number().default(30),
   CLIENT_URL: z.string().url().default("http://localhost:3000"),
+  // Google OAuth — optional. When unset, the /auth/google routes return 501.
+  GOOGLE_CLIENT_ID: z.string().optional(),
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
+  GOOGLE_CALLBACK_URL: z
+    .string()
+    .url()
+    .default("http://localhost:4000/api/v1/auth/google/callback"),
 });
+
+/** True only when both Google OAuth credentials are configured. */
+export const isGoogleOAuthConfigured = (): boolean =>
+  Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET);
 
 const parsed = envSchema.safeParse(process.env);
 

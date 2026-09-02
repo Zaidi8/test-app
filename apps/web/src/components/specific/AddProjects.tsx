@@ -12,14 +12,7 @@ import {Input} from '../ui/input';
 import {useState} from 'react';
 import {toast} from 'sonner';
 import {ProjectType} from '@/types/project';
-import {auth, db} from '../../../firebaseConfig';
-import {
-  addDoc,
-  doc,
-  collection,
-  serverTimestamp,
-  updateDoc,
-} from 'firebase/firestore';
+import {useAuth} from '@/lib/auth-provider';
 
 export default function AddProject({
   editingProject,
@@ -28,10 +21,9 @@ export default function AddProject({
   editingProject: ProjectType | null;
   setEditingProject: React.Dispatch<React.SetStateAction<ProjectType | null>>;
 }) {
+  const {user} = useAuth();
   const [projectName, setProjectName] = useState(editingProject?.title ?? '');
   const [open, setOpen] = useState(false);
-
-  const [loading, setLoading] = useState(false);
 
   // Keep the form in sync when the target project changes (render-time adjustment,
   // per React docs — avoids setState-in-effect).
@@ -42,55 +34,19 @@ export default function AddProject({
     setOpen(Boolean(editingProject));
   }
 
-  const handleSubmitProject = async () => {
+  const handleSubmitProject = () => {
     if (!projectName.trim()) return;
-    setLoading(true);
-
-    const user = auth.currentUser;
     if (!user) {
       toast.error('User not logged in');
-      setLoading(false);
       return;
     }
 
-    try {
-      if (editingProject) {
-        // Update existing project
-        const projectRef = doc(
-          db,
-          'users',
-          user.uid,
-          'projects',
-          editingProject.id,
-        );
-        await updateDoc(projectRef, {
-          title: projectName,
-        });
-        toast.success('Project updated!');
-      } else {
-        // Add new project
-        const newProject: Omit<ProjectType, 'id' | 'createdAt'> = {
-          title: projectName,
-          isComplete: false,
-          userId: user.uid,
-        };
-
-        await addDoc(collection(db, 'users', user.uid, 'projects'), {
-          ...newProject,
-          createdAt: serverTimestamp(),
-        });
-        toast.success('Project created!');
-      }
-
-      setProjectName('');
-      setEditingProject(null); // Reset editing
-      setOpen(false);
-    } catch (error) {
-      console.error('Error adding/updating project:', error);
-      toast.error('Failed to add/update project');
-    } finally {
-      setLoading(false);
-    }
+    // TODO(T5): persist via the projects API. The Mongo data layer is not wired
+    // up yet, so creating/updating projects is intentionally a no-op for now.
+    toast.info('Saving projects lands in T5 (data layer migration).');
+    setProjectName('');
+    setEditingProject(null);
+    setOpen(false);
   };
 
   const handleCloseDialog = () => {
@@ -129,7 +85,7 @@ export default function AddProject({
           <Button
             className="cursor-pointer"
             onClick={handleSubmitProject}
-            disabled={loading}>
+            disabled={!projectName.trim()}>
             {editingProject ? 'Update' : 'Create'}
           </Button>
         </DialogFooter>

@@ -1,6 +1,6 @@
 'use client';
 
-import {useEffect, useState} from 'react';
+import {useState} from 'react';
 import {Card} from '../ui/card';
 import {Button} from '../ui/button';
 import {Checkbox} from '../ui/checkbox';
@@ -11,145 +11,21 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '../ui/dropdown-menu';
-import {auth, db} from '../../../firebaseConfig';
-import {
-  collection,
-  deleteDoc,
-  doc,
-  onSnapshot,
-  query,
-  updateDoc,
-  orderBy,
-  getDocs,
-} from 'firebase/firestore';
 import {toast} from 'sonner';
 import {TaskType} from '@/types/project';
 import AddTaskPanel from './AddTaskPanel';
-import {onAuthStateChanged} from 'firebase/auth';
 import {useParams} from 'next/navigation';
 
 export default function AddedTasks() {
   const {projectId} = useParams() as {projectId: string};
-  const [tasks, setTasks] = useState<TaskType[]>([]);
+  // TODO(T5): load tasks via the tasks API (TanStack Query). Until the Mongo
+  // data layer lands the list is intentionally empty.
+  const [tasks] = useState<TaskType[]>([]);
   const [showPanel, setShowPanel] = useState(false);
   const [editingTask, setEditingTask] = useState<TaskType | null>(null);
 
-  const userId = auth.currentUser?.uid;
-
-  const toggleComplete = async (
-    userId: string,
-    projectId: string,
-    taskId: string,
-    isNowComplete: boolean,
-  ) => {
-    const taskRef = doc(
-      db,
-      'users',
-      userId,
-      'projects',
-      projectId,
-      'tasks',
-      taskId,
-    );
-
-    try {
-      await updateDoc(taskRef, {isComplete: isNowComplete});
-
-      if (!isNowComplete) {
-        const projectRef = doc(db, 'users', userId, 'projects', projectId);
-        await updateDoc(projectRef, {isComplete: false});
-        return;
-      }
-
-      const tasksSnapshot = await getDocs(
-        collection(db, 'users', userId, 'projects', projectId, 'tasks'),
-      );
-
-      const anyIncomplete = tasksSnapshot.docs.some(
-        doc => doc.data().isComplete === false,
-      );
-
-      // If all tasks are complete, mark project as complete
-      if (!anyIncomplete) {
-        const projectRef = doc(db, 'users', userId, 'projects', projectId);
-        await updateDoc(projectRef, {isComplete: true});
-      }
-    } catch (error) {
-      console.error('Error updating task/project status:', error);
-    }
-  };
-
-  const deleteTask = async (taskId: string) => {
-    const user = auth.currentUser;
-    if (!user) return;
-
-    try {
-      await deleteDoc(
-        doc(db, 'users', user.uid, 'projects', projectId, 'tasks', taskId),
-      );
-      toast.success('Task deleted');
-    } catch (error) {
-      console.error('Failed to delete task', error);
-      toast.error('Could not delete task');
-    }
-  };
-
-  useEffect(() => {
-    let unsubscribe: (() => void) | undefined;
-    let isMounted = true;
-
-    const unsubscribeAuth = onAuthStateChanged(auth, user => {
-      // Clean up existing listener before creating a new one
-      if (unsubscribe) {
-        unsubscribe();
-        unsubscribe = undefined;
-      }
-
-      if (user && projectId && isMounted) {
-        const q = query(
-          collection(db, 'users', user.uid, 'projects', projectId, 'tasks'),
-          orderBy('createdAt', 'desc'),
-        );
-
-        unsubscribe = onSnapshot(
-          q,
-          snapshot => {
-            if (isMounted) {
-              const fetchedTasks = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data(),
-              })) as TaskType[];
-
-              setTasks(fetchedTasks);
-            }
-          },
-          error => {
-            // Handle permission errors gracefully
-            if (error.code === 'permission-denied') {
-              console.log('Permission denied - user likely signed out');
-              if (isMounted) {
-                setTasks([]);
-              }
-            } else {
-              console.error('Firestore listener error:', error);
-            }
-          },
-        );
-      } else {
-        if (isMounted) {
-          setTasks([]);
-        }
-      }
-    });
-
-    return () => {
-      isMounted = false;
-      unsubscribeAuth();
-      if (unsubscribe) {
-        unsubscribe();
-      }
-    };
-  }, [projectId]);
+  const notifyPending = () =>
+    toast.info('Task changes land in T5 (data layer migration).');
 
   return (
     <div className="h-full relative">
@@ -166,13 +42,7 @@ export default function AddedTasks() {
             <div className="flex items-center mx-2 gap-2 sm:w-[60%]">
               <Checkbox
                 checked={task.isComplete}
-                onCheckedChange={() => {
-                  if (!userId) {
-                    toast.error('User not logged in');
-                    return;
-                  }
-                  toggleComplete(userId, projectId, task.id, !task.isComplete);
-                }}
+                onCheckedChange={() => notifyPending()}
                 className="cursor-pointer"
               />
               <p
@@ -211,23 +81,12 @@ export default function AddedTasks() {
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     className="cursor-pointer"
-                    onClick={() => {
-                      if (!userId) {
-                        toast.error('User not logged in');
-                        return;
-                      }
-                      toggleComplete(
-                        userId,
-                        projectId,
-                        task.id,
-                        !task.isComplete,
-                      );
-                    }}>
+                    onClick={() => notifyPending()}>
                     {task.isComplete ? 'Mark Incomplete' : 'Mark Complete'}
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     className="cursor-pointer"
-                    onClick={() => deleteTask(task.id)}>
+                    onClick={() => notifyPending()}>
                     Delete
                   </DropdownMenuItem>
                 </DropdownMenuContent>

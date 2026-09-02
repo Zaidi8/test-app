@@ -1,6 +1,5 @@
 'use client';
-import {signOut, onAuthStateChanged} from 'firebase/auth';
-import {useEffect, useState} from 'react';
+import {useState} from 'react';
 
 import {Avatar, AvatarFallback, AvatarImage} from '@/components/ui/avatar';
 import {Sheet, SheetTrigger, SheetContent} from '@/components/ui/sheet';
@@ -11,42 +10,20 @@ import {
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
 import {Button} from '@/components/ui/button';
-import {auth} from '../../../firebaseConfig';
 import {useRouter} from 'next/navigation';
 import AddedProjects from '../specific/AddedProjects';
+import {useAuth} from '@/lib/auth-provider';
 
 export default function DashboardHeader() {
   const router = useRouter();
-  const [displayName, setDisplayName] = useState('');
+  const {user, logout} = useAuth();
   const [open, setOpen] = useState(false);
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, user => {
-      if (user) {
-        setDisplayName(user.displayName || 'User');
-      } else {
-        setDisplayName('');
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
+  const displayName = user?.name ?? '';
 
   const handleLogout = async () => {
     try {
-      // Clear the auth token cookie first
-      document.cookie = 'authToken=; path=/; max-age=0';
-
-      // Sign out from Firebase
-      await signOut(auth);
-
-      // Small delay to ensure cleanup completes
-      await new Promise(resolve => setTimeout(resolve, 100));
-
-      // Navigate to login page
-      router.push('/auth/login');
-    } catch (error) {
-      console.error('Error logging out:', error);
-      // Even if there's an error, try to navigate to login
+      await logout();
+    } finally {
       router.push('/auth/login');
     }
   };
@@ -72,7 +49,7 @@ export default function DashboardHeader() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Avatar className="cursor-pointer">
-              <AvatarImage src="/profile.png" alt="@user" />
+              <AvatarImage src={user?.avatarUrl ?? '/profile.png'} alt="@user" />
               <AvatarFallback>U</AvatarFallback>
             </Avatar>
           </DropdownMenuTrigger>

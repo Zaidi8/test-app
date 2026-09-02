@@ -1,21 +1,19 @@
 import { Router } from "express";
 
+import * as authController from "../controllers/auth.controller.js";
 import { requireAuth } from "../middleware/auth.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 
-/**
- * Placeholder auth router.
- * Fill in during T4 (register / login / refresh / logout / me / google OAuth).
- */
 const router: Router = Router();
 
-// Public health check for the auth module.
-router.get("/status", (_req, res) => {
-  res.json({ status: "auth routes mounted" });
-});
+router.post("/register", asyncHandler(authController.register));
+router.post("/login", asyncHandler(authController.login));
+router.post("/refresh", asyncHandler(authController.refresh));
+router.post("/logout", asyncHandler(authController.logout));
+router.get("/me", requireAuth, asyncHandler(authController.me));
 
-// Protected example showing the auth middleware.
-router.get("/me", requireAuth, (req, res) => {
-  res.json({ user: req.user });
-});
+// Google OAuth — return 501 (handled inside) until credentials are configured.
+router.get("/google", asyncHandler(authController.googleRedirect));
+router.get("/google/callback", asyncHandler(authController.googleCallback));
 
 export default router;
