@@ -16,8 +16,8 @@ const apiRouter: Router = Router();
 apiRouter.use("/auth", authRouter);
 apiRouter.use("/workspaces", workspaceRouter);
 apiRouter.use("/workspaces", workspaceInvitationRouter);
+apiRouter.use("/workspaces", projectRouter);
+apiRouter.use("/workspaces", activityRouter);
 apiRouter.use("/invitations", invitationAcceptRouter);
-apiRouter.use("/", projectRouter);
-apiRouter.use("/", activityRouter);
 
 export default apiRouter;

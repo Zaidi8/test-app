@@ -137,6 +137,8 @@ export async function createTask(req: Request, res: Response): Promise<void> {
     description: parsed.data.description ?? null,
     priority: parsed.data.priority,
     assigneeId: parsed.data.assigneeId ?? null,
+    scheduledStart: parsed.data.scheduledStart ? new Date(parsed.data.scheduledStart) : null,
+    scheduledEnd: parsed.data.scheduledEnd ? new Date(parsed.data.scheduledEnd) : null,
     dueDate: parsed.data.dueDate ? new Date(parsed.data.dueDate) : null,
     timeEstimate: parsed.data.timeEstimate ?? null,
     tags: parsed.data.tags,
