@@ -5,6 +5,8 @@ import {
   type InferSchemaType,
 } from "mongoose";
 
+import { emitActivityCreated } from "../socket/activityEmitter.js";
+
 const activitySchema = new Schema(
   {
     workspaceId: { type: Schema.Types.ObjectId, ref: "Workspace", required: true },
@@ -33,6 +35,10 @@ const activitySchema = new Schema(
 );
 
 activitySchema.index({ workspaceId: 1, createdAt: -1 });
+
+activitySchema.post("save", function () {
+  emitActivityCreated(this as unknown as ActivityDoc);
+});
 
 export type ActivityAttrs = InferSchemaType<typeof activitySchema>;
 export type ActivityDoc = HydratedDocument<ActivityAttrs>;

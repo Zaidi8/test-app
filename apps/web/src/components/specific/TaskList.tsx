@@ -14,6 +14,7 @@ import {
 import {toast} from 'sonner';
 import {Task} from '@prioritree/shared';
 import TaskPanel from './TaskPanel';
+import TaskComments from './TaskComments';
 import {
   useTasks,
   useUpdateTaskStatus,
@@ -29,6 +30,7 @@ export default function TaskList({workspaceId, projectId}: TaskListProps) {
   const {data: tasks = []} = useTasks(workspaceId, projectId);
   const [showPanel, setShowPanel] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [openCommentsId, setOpenCommentsId] = useState<string | null>(null);
 
   const updateStatus = useUpdateTaskStatus(workspaceId, projectId);
   const deleteTask = useDeleteTask(workspaceId, projectId);
@@ -109,6 +111,13 @@ export default function TaskList({workspaceId, projectId}: TaskListProps) {
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     className="cursor-pointer"
+                    onClick={() =>
+                      setOpenCommentsId(prev => (prev === task.id ? null : task.id))
+                    }>
+                    {openCommentsId === task.id ? 'Hide Comments' : 'Comments'}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="cursor-pointer"
                     onClick={() => handleToggleComplete(task)}>
                     {task.status === 'done' ? 'Mark Incomplete' : 'Mark Complete'}
                   </DropdownMenuItem>
@@ -120,6 +129,15 @@ export default function TaskList({workspaceId, projectId}: TaskListProps) {
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
+            {openCommentsId === task.id && (
+              <div className="w-full border-t pt-3 mt-1">
+                <TaskComments
+                  workspaceId={workspaceId}
+                  projectId={projectId}
+                  taskId={task.id}
+                />
+              </div>
+            )}
           </Card>
         ))}
 

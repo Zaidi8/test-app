@@ -7,11 +7,13 @@ import {
   updateWorkspaceSchema,
   type Member,
 } from "@prioritree/shared";
+import { SOCKET_EVENTS } from "@prioritree/shared/socket";
 
 import { Activity } from "../models/Activity.js";
 import { User } from "../models/User.js";
 import { Workspace } from "../models/Workspace.js";
 import { WorkspaceMember } from "../models/WorkspaceMember.js";
+import { emitToWorkspace } from "../socket/index.js";
 import { ApiError } from "../utils/ApiError.js";
 import { param } from "../utils/params.js";
 import { slugify } from "../utils/slugify.js";
@@ -257,6 +259,15 @@ export async function addMember(req: Request, res: Response): Promise<void> {
       joinedAt: member.joinedAt,
     }),
   });
+
+  emitToWorkspace(req, wsId, SOCKET_EVENTS.MEMBER_JOINED, {
+    userId: String(user._id),
+    name: user.name,
+    email: user.email,
+    role: member.role,
+    avatarUrl: user.avatarUrl,
+    actorId: req.user!.id,
+  });
 }
 
 // PATCH /api/v1/workspaces/:workspaceId/members/:userId — change role.
@@ -304,6 +315,12 @@ export async function updateMemberRole(req: Request, res: Response): Promise<voi
     metadata: { role: member.role },
   });
 
+  emitToWorkspace(req, wsId, SOCKET_EVENTS.MEMBER_ROLE_CHANGED, {
+    userId: String(member.userId),
+    role: member.role,
+    actorId: req.user!.id,
+  });
+
   res.status(200).json({ success: true });
 }
 
@@ -338,6 +355,11 @@ export async function removeMember(req: Request, res: Response): Promise<void> {
     entityId: String(member.userId),
     entityType: "user",
     metadata: {},
+  });
+
+  emitToWorkspace(req, wsId, SOCKET_EVENTS.MEMBER_LEFT, {
+    userId: String(member.userId),
+    actorId: req.user!.id,
   });
 
   res.status(200).json({ success: true });

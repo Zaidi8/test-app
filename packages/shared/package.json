@@ -7,6 +7,10 @@
     ".": {
       "types": "./src/index.ts",
       "import": "./src/index.ts"
+    },
+    "./socket": {
+      "types": "./src/socket/events.ts",
+      "import": "./src/socket/events.ts"
     }
   },
   "scripts": {

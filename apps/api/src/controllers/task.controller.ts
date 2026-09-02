@@ -9,11 +9,13 @@ import {
   type CommentWithAuthor as CommentWithAuthorDto,
   type Task as TaskDto,
 } from "@prioritree/shared";
+import { SOCKET_EVENTS } from "@prioritree/shared/socket";
 
 import { Activity } from "../models/Activity.js";
 import { Comment as TaskComment } from "../models/Comment.js";
 import { Task } from "../models/Task.js";
 import { User } from "../models/User.js";
+import { emitToWorkspace } from "../socket/index.js";
 import { ApiError } from "../utils/ApiError.js";
 import { param } from "../utils/params.js";
 
@@ -154,7 +156,10 @@ export async function createTask(req: Request, res: Response): Promise<void> {
     metadata: { title: task.title },
   });
 
-  res.status(201).json({ task: toTaskPublic(task) });
+  const publicTask = toTaskPublic(task);
+  emitToWorkspace(req, wsId, SOCKET_EVENTS.TASK_CREATED, { task: publicTask, actorId: req.user.id });
+
+  res.status(201).json({ task: publicTask });
 }
 
 // PATCH /api/v1/workspaces/:workspaceId/projects/:projectId/tasks/:taskId
@@ -212,7 +217,10 @@ export async function updateTask(req: Request, res: Response): Promise<void> {
     metadata: { title: task.title },
   });
 
-  res.status(200).json({ task: toTaskPublic(task) });
+  const publicTask = toTaskPublic(task);
+  emitToWorkspace(req, wsId, SOCKET_EVENTS.TASK_UPDATED, { task: publicTask, actorId: req.user.id });
+
+  res.status(200).json({ task: publicTask });
 }
 
 // PATCH /api/v1/workspaces/:workspaceId/projects/:projectId/tasks/:taskId/status
@@ -246,7 +254,13 @@ export async function updateTaskStatus(req: Request, res: Response): Promise<voi
     metadata: { status },
   });
 
-  res.status(200).json({ task: toTaskPublic(task) });
+  const publicTask = toTaskPublic(task);
+  emitToWorkspace(req, wsId, SOCKET_EVENTS.TASK_STATUS_CHANGED, {
+    task: publicTask,
+    actorId: req.user.id,
+  });
+
+  res.status(200).json({ task: publicTask });
 }
 
 // DELETE /api/v1/workspaces/:workspaceId/projects/:projectId/tasks/:taskId
@@ -271,6 +285,11 @@ export async function deleteTask(req: Request, res: Response): Promise<void> {
     entityId: String(task._id),
     entityType: "task",
     metadata: {},
+  });
+
+  emitToWorkspace(req, wsId, SOCKET_EVENTS.TASK_DELETED, {
+    taskId: String(task._id),
+    actorId: req.user.id,
   });
 
   res.status(204).send();
@@ -330,6 +349,12 @@ export async function createComment(req: Request, res: Response): Promise<void> 
     metadata: { taskId: String(task._id) },
   });
 
+  emitToWorkspace(req, wsId, SOCKET_EVENTS.COMMENT_CREATED, {
+    comment: toCommentSimple(comment),
+    taskId: String(task._id),
+    actorId: req.user.id,
+  });
+
   res.status(201).json({ comment: toCommentSimple(comment) });
 }
 
@@ -343,6 +368,7 @@ export async function updateComment(req: Request, res: Response): Promise<void> 
     throw ApiError.badRequest("Invalid comment update", parsed.error.flatten());
   }
 
+  const wsId = param(req, "workspaceId");
   const commentId = param(req, "commentId");
   const comment = await TaskComment.findById(commentId);
   if (!comment || String(comment.authorId) !== req.user.id) {
@@ -353,6 +379,11 @@ export async function updateComment(req: Request, res: Response): Promise<void> 
   comment.mentions = [...parsed.data.body.matchAll(/@(\w+)/g)].map(m => m[1]);
   await comment.save();
 
+  emitToWorkspace(req, wsId, SOCKET_EVENTS.COMMENT_UPDATED, {
+    comment: toCommentSimple(comment),
+    actorId: req.user.id,
+  });
+
   res.status(200).json({ comment: toCommentSimple(comment) });
 }
 
@@ -361,11 +392,19 @@ export async function deleteComment(req: Request, res: Response): Promise<void> 
   if (!req.user) {
     throw ApiError.unauthorized();
   }
+  const wsId = param(req, "workspaceId");
   const commentId = param(req, "commentId");
   const comment = await TaskComment.findById(commentId);
   if (!comment || String(comment.authorId) !== req.user.id) {
     throw ApiError.forbidden("You can only delete your own comments");
   }
   await comment.deleteOne();
+
+  emitToWorkspace(req, wsId, SOCKET_EVENTS.COMMENT_DELETED, {
+    commentId,
+    taskId: String(comment.taskId),
+    actorId: req.user.id,
+  });
+
   res.status(204).send();
 }

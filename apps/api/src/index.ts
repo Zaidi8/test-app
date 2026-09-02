@@ -3,10 +3,13 @@ import cors from "cors";
 import express, { type Request, type Response, type NextFunction } from "express";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
+import { createServer } from "node:http";
 
 import { env } from "./config/env.js";
 import { connectToDatabase, disconnectFromDatabase } from "./db/mongoose.js";
 import apiRouter from "./routes/index.js";
+import { createSocketServer } from "./socket/index.js";
+import { registerActivityEmitter } from "./socket/activityEmitter.js";
 import { ApiError } from "./utils/ApiError.js";
 
 const app = express();
@@ -62,7 +65,11 @@ app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
 // Boot server after connecting to database
 async function startServer() {
   await connectToDatabase();
-  app.listen(env.PORT, () => {
+  const httpServer = createServer(app);
+  const io = createSocketServer(httpServer);
+  app.set("io", io);
+  registerActivityEmitter(io);
+  httpServer.listen(env.PORT, () => {
     console.log(`🚀 API server listening on http://localhost:${env.PORT}`);
   });
 }
